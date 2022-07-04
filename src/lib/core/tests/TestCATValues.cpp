@@ -16,7 +16,6 @@
  *    limitations under the License.
  */
 
-
 #include <lib/support/UnitTestRegistration.h>
 #include <nlunit-test.h>
 
