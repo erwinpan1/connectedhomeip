@@ -118,7 +118,6 @@ CHIP_ERROR CommandSender::SendInvokeRequest()
 CHIP_ERROR CommandSender::OnMessageReceived(Messaging::ExchangeContext * apExchangeContext, const PayloadHeader & aPayloadHeader,
                                             System::PacketBufferHandle && aPayload)
 {
-    bool suppressErrorStatusResponse = false;
     if (mState == State::CommandSent)
     {
         MoveToState(State::ResponseReceived);
@@ -133,7 +132,6 @@ CHIP_ERROR CommandSender::OnMessageReceived(Messaging::ExchangeContext * apExcha
         {
             CHIP_ERROR statusError = CHIP_NO_ERROR;
             SuccessOrExit(err = StatusResponse::ProcessStatusResponse(std::move(aPayload), statusError));
-            suppressErrorStatusResponse = true;
             SuccessOrExit(err = statusError);
             err = SendInvokeRequest();
         }
@@ -155,7 +153,6 @@ CHIP_ERROR CommandSender::OnMessageReceived(Messaging::ExchangeContext * apExcha
     {
         CHIP_ERROR statusError = CHIP_NO_ERROR;
         SuccessOrExit(err = StatusResponse::ProcessStatusResponse(std::move(aPayload), statusError));
-        suppressErrorStatusResponse = true;
         SuccessOrExit(err = statusError);
     }
     else
@@ -164,23 +161,19 @@ CHIP_ERROR CommandSender::OnMessageReceived(Messaging::ExchangeContext * apExcha
     }
 
 exit:
-    return ResponseMessageHandled(err, apExchangeContext, suppressErrorStatusResponse);
+    ResponseMessageHandled(err, apExchangeContext);
+    return err;
 }
 
-CHIP_ERROR CommandSender::ResponseMessageHandled(CHIP_ERROR aError, Messaging::ExchangeContext * apExchangeContext,
-                                       bool aSuppressErrorStatusResponse)
+void CommandSender::ResponseMessageHandled(CHIP_ERROR aError, Messaging::ExchangeContext * apExchangeContext)
 {
-    CHIP_ERROR err = aError;
     if (aError != CHIP_NO_ERROR)
     {
-        if (!aSuppressErrorStatusResponse)
+        CHIP_ERROR err = StatusResponse::Send(Protocols::InteractionModel::Status::InvalidAction, apExchangeContext,
+                                   false /*aExpectResponse*/);
+        if (err == CHIP_NO_ERROR)
         {
-            err = StatusResponse::Send(Protocols::InteractionModel::Status::InvalidAction, apExchangeContext,
-                                       false /*aExpectResponse*/);
-            if (err == CHIP_NO_ERROR)
-            {
-                mpExchangeCtx = nullptr;
-            }
+            mpExchangeCtx = nullptr;
         }
 
         if (mpCallback != nullptr)
@@ -194,8 +187,6 @@ CHIP_ERROR CommandSender::ResponseMessageHandled(CHIP_ERROR aError, Messaging::E
         Close();
     }
     // Else we got a response to a Timed Request and just sent the invoke.
-
-    return err;
 }
 
 CHIP_ERROR CommandSender::ProcessInvokeResponse(System::PacketBufferHandle && payload)

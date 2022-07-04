@@ -43,7 +43,6 @@
 #include <protocols/interaction_model/Constants.h>
 #include <system/SystemPacketBuffer.h>
 #include <system/TLVPacketBufferBackingStore.h>
-#include <app/InteractionModelHelper.h>
 #include <nlunit-test.h>
 
 using TestContext = chip::Test::AppContext;
@@ -182,7 +181,6 @@ public:
     static void TestCommandHandlerCommandEncodeFailure(nlTestSuite * apSuite, void * apContext);
     static void TestCommandInvalidMessage1(nlTestSuite * apSuite, void * apContext);
     static void TestCommandInvalidMessage2(nlTestSuite * apSuite, void * apContext);
-    static void TestCommandInvalidMessage3(nlTestSuite * apSuite, void * apContext);
     static void TestCommandHandlerCommandEncodeExternalFailure(nlTestSuite * apSuite, void * apContext);
     static void TestCommandHandlerWithSendSimpleStatusCode(nlTestSuite * apSuite, void * apContext);
     static void TestCommandHandlerWithSendEmptyResponse(nlTestSuite * apSuite, void * apContext);
@@ -662,7 +660,6 @@ void TestCommandInteraction::TestCommandInvalidMessage1(nlTestSuite * apSuite, v
     ctx.GetLoopback().mSentMessageCount = 0;
     ctx.DrainAndServiceIO();
     // a command response message was sent
-    printf("debug %d", ctx.GetLoopback().mSentMessageCount);
     NL_TEST_ASSERT(apSuite, ctx.GetLoopback().mSentMessageCount == 1);
 
     NL_TEST_ASSERT(apSuite, GetNumActiveHandlerObjects() == 0);
@@ -670,46 +667,8 @@ void TestCommandInteraction::TestCommandInvalidMessage1(nlTestSuite * apSuite, v
     NL_TEST_ASSERT(apSuite, ctx.GetExchangeManager().GetNumActiveExchanges() == 0);
 }
 
-// Command Sender sends the invoke request, handler runs the async procedure, and triggers unknown message call
-void TestCommandInteraction::TestCommandInvalidMessage2(nlTestSuite * apSuite, void * apContext)
-{
-    TestContext & ctx = *static_cast<TestContext *>(apContext);
-    CHIP_ERROR err    = CHIP_NO_ERROR;
-
-    mockCommandSenderDelegate.ResetCounter();
-    app::CommandSender commandSender(&mockCommandSenderDelegate, &ctx.GetExchangeManager());
-
-    AddInvokeRequestData(apSuite, apContext, &commandSender);
-    asyncCommand = true;
-    err          = commandSender.SendCommandRequest(ctx.GetSessionBobToAlice());
-    NL_TEST_ASSERT(apSuite, err == CHIP_NO_ERROR);
-
-    ctx.DeliverOneMessage();
-
-    NL_TEST_ASSERT(apSuite,
-                   mockCommandSenderDelegate.onResponseCalledTimes == 0 && mockCommandSenderDelegate.onFinalCalledTimes == 0 &&
-                       mockCommandSenderDelegate.onErrorCalledTimes == 0);
-
-    NL_TEST_ASSERT(apSuite, GetNumActiveHandlerObjects() == 1);
-    NL_TEST_ASSERT(apSuite, ctx.GetExchangeManager().GetNumActiveExchanges() == 2);
-
-    System::PacketBufferHandle msgBuf;
-    WriteRequestMessage::Builder request;
-    System::PacketBufferTLVWriter writer;
-
-    chip::app::InitWriterWithSpaceReserved(writer, 0);
-    err = request.Init(&writer);
-    err = writer.Finalize(&msgBuf);
-    err = commandSender.mpExchangeCtx->SendMessage(Protocols::InteractionModel::MsgType::WriteRequest, std::move(msgBuf),
-                                                Messaging::SendFlags(Messaging::SendMessageFlags::kExpectResponse));
-    ctx.DrainAndServiceIO();
-
-    asyncCommandHandle = nullptr;
-    NL_TEST_ASSERT(apSuite, GetNumActiveHandlerObjects() == 0);
-}
-
 // Command Sender sends the  malformed invoke request, handler fails to process it and send status report with invalid action
-void TestCommandInteraction::TestCommandInvalidMessage3(nlTestSuite * apSuite, void * apContext)
+void TestCommandInteraction::TestCommandInvalidMessage2(nlTestSuite * apSuite, void * apContext)
 {
     TestContext & ctx = *static_cast<TestContext *>(apContext);
     CHIP_ERROR err    = CHIP_NO_ERROR;
@@ -1046,7 +1005,6 @@ const nlTest sTests[] =
     NL_TEST_DEF("TestCommandHandlerCommandEncodeFailure", chip::app::TestCommandInteraction::TestCommandHandlerCommandEncodeFailure),
     NL_TEST_DEF("TestCommandInvalidMessage1", chip::app::TestCommandInteraction::TestCommandInvalidMessage1),
     NL_TEST_DEF("TestCommandInvalidMessage2", chip::app::TestCommandInteraction::TestCommandInvalidMessage2),
-    NL_TEST_DEF("TestCommandInvalidMessage3", chip::app::TestCommandInteraction::TestCommandInvalidMessage3),
     NL_TEST_DEF("TestCommandHandlerCommandEncodeExternalFailure", chip::app::TestCommandInteraction::TestCommandHandlerCommandEncodeExternalFailure),
     NL_TEST_DEF("TestCommandHandlerWithSendSimpleStatusCode", chip::app::TestCommandInteraction::TestCommandHandlerWithSendSimpleStatusCode),
     NL_TEST_DEF("TestCommandHandlerWithProcessReceivedMsg", chip::app::TestCommandInteraction::TestCommandHandlerWithProcessReceivedMsg),

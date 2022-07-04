@@ -448,7 +448,6 @@ CHIP_ERROR WriteClient::SendWriteRequest()
 CHIP_ERROR WriteClient::OnMessageReceived(Messaging::ExchangeContext * apExchangeContext, const PayloadHeader & aPayloadHeader,
                                           System::PacketBufferHandle && aPayload)
 {
-    bool suppressErrorStatusResponse = true;
     if (mState == State::AwaitingResponse &&
         // We had sent the last chunk of data, and received all responses
         mChunks.IsNull())
@@ -469,7 +468,6 @@ CHIP_ERROR WriteClient::OnMessageReceived(Messaging::ExchangeContext * apExchang
         {
             CHIP_ERROR statusError = CHIP_NO_ERROR;
             SuccessOrExit(err = StatusResponse::ProcessStatusResponse(std::move(aPayload), statusError));
-            suppressErrorStatusResponse = true;
             SuccessOrExit(err = statusError);
             err = SendWriteRequest();
         }
@@ -496,7 +494,6 @@ CHIP_ERROR WriteClient::OnMessageReceived(Messaging::ExchangeContext * apExchang
     {
         CHIP_ERROR statusError = CHIP_NO_ERROR;
         SuccessOrExit(err = StatusResponse::ProcessStatusResponse(std::move(aPayload), statusError));
-        suppressErrorStatusResponse = true;
         SuccessOrExit(err = statusError);
     }
     else
@@ -505,23 +502,19 @@ CHIP_ERROR WriteClient::OnMessageReceived(Messaging::ExchangeContext * apExchang
     }
 
 exit:
-    return ResponseMessageHandled(err, apExchangeContext, suppressErrorStatusResponse);
+    ResponseMessageHandled(err, apExchangeContext);
+    return err;
 }
 
-CHIP_ERROR WriteClient::ResponseMessageHandled(CHIP_ERROR aError, Messaging::ExchangeContext * apExchangeContext,
-                                     bool aSuppressErrorStatusResponse)
+void WriteClient::ResponseMessageHandled(CHIP_ERROR aError, Messaging::ExchangeContext * apExchangeContext)
 {
-    CHIP_ERROR err = aError;
     if (err != CHIP_NO_ERROR)
     {
-        if (!aSuppressErrorStatusResponse)
+        CHIP_ERROR err = StatusResponse::Send(Protocols::InteractionModel::Status::InvalidAction, apExchangeContext,
+                                   false /*aExpectResponse*/);
+        if (err == CHIP_NO_ERROR)
         {
-            err = StatusResponse::Send(Protocols::InteractionModel::Status::InvalidAction, apExchangeContext,
-                                       false /*aExpectResponse*/);
-            if (err == CHIP_NO_ERROR)
-            {
-                mpExchangeCtx = nullptr;
-            }
+            mpExchangeCtx = nullptr;
         }
 
         if (mpCallback != nullptr)
@@ -534,9 +527,6 @@ CHIP_ERROR WriteClient::ResponseMessageHandled(CHIP_ERROR aError, Messaging::Exc
     {
         Close();
     }
-    // Else we got a response to a Timed Request and just sent the write.
-
-    return err;
 }
 
 void WriteClient::OnResponseTimeout(Messaging::ExchangeContext * apExchangeContext)
