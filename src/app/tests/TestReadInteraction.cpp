@@ -2831,9 +2831,8 @@ void TestReadInteraction::TestReadInvalidMessage2(nlTestSuite * apSuite, void * 
     NL_TEST_ASSERT(apSuite, ctx.GetExchangeManager().GetNumActiveExchanges() == 0);
 }
 
-// Read Client creates the subscription with server, server sends chunked reports, after the hander sends out the first chunked report,
-// handler calls unknown message function and send status report, client
-// and server would be closed
+// Read Client creates the subscription with server, server sends chunked reports, after the hander sends out the first chunked
+// report, handler calls unknown message function and send status report, client and server would be closed
 void TestReadInteraction::TestSubscribeInvalidMessage1(nlTestSuite * apSuite, void * apContext)
 {
     TestContext & ctx = *static_cast<TestContext *>(apContext);
@@ -2867,8 +2866,8 @@ void TestReadInteraction::TestSubscribeInvalidMessage1(nlTestSuite * apSuite, vo
 
         ctx.DeliverOneMessage();
 
-        //ctx.GetLoopback().mNumMessagesToDrop = 1;
-        //ctx.DeliverOneMessage();
+        // ctx.GetLoopback().mNumMessagesToDrop = 1;
+        // ctx.DeliverOneMessage();
 
         System::PacketBufferHandle msgBuf;
         ReadRequestMessage::Builder request;

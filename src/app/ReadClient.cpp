@@ -394,7 +394,7 @@ CHIP_ERROR ReadClient::GenerateDataVersionFilterList(DataVersionFilterIBs::Build
 CHIP_ERROR ReadClient::OnMessageReceived(Messaging::ExchangeContext * apExchangeContext, const PayloadHeader & aPayloadHeader,
                                          System::PacketBufferHandle && aPayload)
 {
-    CHIP_ERROR err                   = CHIP_NO_ERROR;
+    CHIP_ERROR err = CHIP_NO_ERROR;
     VerifyOrExit(!IsIdle(), err = CHIP_ERROR_INCORRECT_STATE);
 
     if (aPayloadHeader.HasMessageType(Protocols::InteractionModel::MsgType::ReportData))
@@ -432,12 +432,11 @@ void ReadClient::ResponseMessageHandled(CHIP_ERROR aError, Messaging::ExchangeCo
 {
     if (aError != CHIP_NO_ERROR)
     {
-            CHIP_ERROR err = StatusResponse::Send(Status::InvalidAction, apExchangeContext,
-                                       false /*aExpectResponse*/);
-            if (err == CHIP_NO_ERROR)
-            {
-                mpExchangeCtx = nullptr;
-            }
+        CHIP_ERROR err = StatusResponse::Send(Status::InvalidAction, apExchangeContext, false /*aExpectResponse*/);
+        if (err == CHIP_NO_ERROR)
+        {
+            mpExchangeCtx = nullptr;
+        }
     }
 
     if ((!IsSubscriptionType() && !mPendingMoreChunks) || aError != CHIP_NO_ERROR)
@@ -599,9 +598,7 @@ exit:
     if (!suppressResponse)
     {
         bool noResponseExpected = IsSubscriptionActive() && !mPendingMoreChunks;
-        err                     = StatusResponse::Send(err == CHIP_NO_ERROR ? Status::Success
-                                                        : Status::Failure,
-                                   mpExchangeCtx, !noResponseExpected);
+        err = StatusResponse::Send(err == CHIP_NO_ERROR ? Status::Success : Status::Failure, mpExchangeCtx, !noResponseExpected);
 
         if (noResponseExpected || (err != CHIP_NO_ERROR))
         {

@@ -510,8 +510,8 @@ void WriteClient::ResponseMessageHandled(CHIP_ERROR aError, Messaging::ExchangeC
 {
     if (err != CHIP_NO_ERROR)
     {
-        CHIP_ERROR err = StatusResponse::Send(Protocols::InteractionModel::Status::InvalidAction, apExchangeContext,
-                                   false /*aExpectResponse*/);
+        CHIP_ERROR err =
+            StatusResponse::Send(Protocols::InteractionModel::Status::InvalidAction, apExchangeContext, false /*aExpectResponse*/);
         if (err == CHIP_NO_ERROR)
         {
             mpExchangeCtx = nullptr;
