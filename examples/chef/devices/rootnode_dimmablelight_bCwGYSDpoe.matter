@@ -1589,7 +1589,7 @@ endpoint 1 {
   }
 
   server cluster OnOff {
-    ram      attribute onOff default = 0;
+    persist  attribute onOff default = 1;
     ram      attribute globalSceneControl default = 1;
     ram      attribute onTime default = 0;
     ram      attribute offWaitTime default = 0;
@@ -1602,8 +1602,8 @@ endpoint 1 {
   }
 
   server cluster LevelControl {
-    ram      attribute currentLevel default = 0x01;
-    ram      attribute remainingTime default = 0x0000;
+    persist  attribute currentLevel default = 0xfe;
+    ram      attribute remainingTime;
     ram      attribute minLevel default = 0x01;
     ram      attribute maxLevel default = 0xFE;
     ram      attribute options default = 0x03;
@@ -1628,5 +1628,3 @@ endpoint 1 {
     ram      attribute clusterRevision default = 1;
   }
 }
-
-
