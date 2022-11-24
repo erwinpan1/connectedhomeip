@@ -33,37 +33,28 @@ namespace Controller {
 class DLL_EXPORT ScenesCluster : public ClusterBase
 {
 public:
-    ScenesCluster(Messaging::ExchangeManager & exchangeManager, const SessionHandle & session, EndpointId endpoint) :
-        ClusterBase(exchangeManager, session, app::Clusters::Scenes::Id, endpoint)
-    {}
+    ScenesCluster(Messaging::ExchangeManager & exchangeManager, const SessionHandle & session, EndpointId endpoint) : ClusterBase(exchangeManager, session, app::Clusters::Scenes::Id, endpoint) {}
     ~ScenesCluster() {}
 };
 
 class DLL_EXPORT OnOffCluster : public ClusterBase
 {
 public:
-    OnOffCluster(Messaging::ExchangeManager & exchangeManager, const SessionHandle & session, EndpointId endpoint) :
-        ClusterBase(exchangeManager, session, app::Clusters::OnOff::Id, endpoint)
-    {}
+    OnOffCluster(Messaging::ExchangeManager & exchangeManager, const SessionHandle & session, EndpointId endpoint) : ClusterBase(exchangeManager, session, app::Clusters::OnOff::Id, endpoint) {}
     ~OnOffCluster() {}
 };
 
 class DLL_EXPORT BindingCluster : public ClusterBase
 {
 public:
-    BindingCluster(Messaging::ExchangeManager & exchangeManager, const SessionHandle & session, EndpointId endpoint) :
-        ClusterBase(exchangeManager, session, app::Clusters::Binding::Id, endpoint)
-    {}
+    BindingCluster(Messaging::ExchangeManager & exchangeManager, const SessionHandle & session, EndpointId endpoint) : ClusterBase(exchangeManager, session, app::Clusters::Binding::Id, endpoint) {}
     ~BindingCluster() {}
 };
 
 class DLL_EXPORT OtaSoftwareUpdateProviderCluster : public ClusterBase
 {
 public:
-    OtaSoftwareUpdateProviderCluster(Messaging::ExchangeManager & exchangeManager, const SessionHandle & session,
-                                     EndpointId endpoint) :
-        ClusterBase(exchangeManager, session, app::Clusters::OtaSoftwareUpdateProvider::Id, endpoint)
-    {}
+    OtaSoftwareUpdateProviderCluster(Messaging::ExchangeManager & exchangeManager, const SessionHandle & session, EndpointId endpoint) : ClusterBase(exchangeManager, session, app::Clusters::OtaSoftwareUpdateProvider::Id, endpoint) {}
     ~OtaSoftwareUpdateProviderCluster() {}
 };
 

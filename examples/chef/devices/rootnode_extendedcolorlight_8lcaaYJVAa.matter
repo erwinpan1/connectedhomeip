@@ -2096,7 +2096,7 @@ endpoint 1 {
   }
 
   server cluster OnOff {
-    ram      attribute onOff;
+    persist  attribute onOff default = 1;
     ram      attribute globalSceneControl default = 1;
     ram      attribute onTime;
     ram      attribute offWaitTime;
@@ -2109,12 +2109,12 @@ endpoint 1 {
   }
 
   server cluster LevelControl {
-    ram      attribute currentLevel default = 0x01;
+    persist  attribute currentLevel default = 0xFE;
     ram      attribute remainingTime;
     ram      attribute minLevel default = 0x01;
     ram      attribute maxLevel default = 0xFE;
     ram      attribute options default = 0x03;
-    ram      attribute onLevel default = 0xFE;
+    ram      attribute onLevel;
     ram      attribute startUpCurrentLevel;
     callback attribute generatedCommandList;
     callback attribute acceptedCommandList;
@@ -2136,12 +2136,12 @@ endpoint 1 {
   }
 
   server cluster ColorControl {
-    ram      attribute currentHue;
-    ram      attribute currentSaturation;
+    persist  attribute currentHue;
+    persist  attribute currentSaturation;
     ram      attribute remainingTime;
     ram      attribute currentX default = 0x616B;
     ram      attribute currentY default = 0x607D;
-    ram      attribute colorTemperatureMireds default = 0x00FA;
+    persist  attribute colorTemperatureMireds default = 0x00FA;
     ram      attribute colorMode default = 0x01;
     ram      attribute options;
     ram      attribute enhancedCurrentHue;

@@ -1737,7 +1737,7 @@ endpoint 1 {
   }
 
   server cluster OnOff {
-    ram      attribute onOff;
+    persist  attribute onOff default = 1;
     ram      attribute globalSceneControl default = 1;
     ram      attribute onTime;
     ram      attribute offWaitTime;
