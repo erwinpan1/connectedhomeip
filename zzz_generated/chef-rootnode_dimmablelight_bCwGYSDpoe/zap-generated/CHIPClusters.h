@@ -33,28 +33,21 @@ namespace Controller {
 class DLL_EXPORT BindingCluster : public ClusterBase
 {
 public:
-    BindingCluster(Messaging::ExchangeManager & exchangeManager, const SessionHandle & session, EndpointId endpoint) :
-        ClusterBase(exchangeManager, session, app::Clusters::Binding::Id, endpoint)
-    {}
+    BindingCluster(Messaging::ExchangeManager & exchangeManager, const SessionHandle & session, EndpointId endpoint) : ClusterBase(exchangeManager, session, app::Clusters::Binding::Id, endpoint) {}
     ~BindingCluster() {}
 };
 
 class DLL_EXPORT OtaSoftwareUpdateProviderCluster : public ClusterBase
 {
 public:
-    OtaSoftwareUpdateProviderCluster(Messaging::ExchangeManager & exchangeManager, const SessionHandle & session,
-                                     EndpointId endpoint) :
-        ClusterBase(exchangeManager, session, app::Clusters::OtaSoftwareUpdateProvider::Id, endpoint)
-    {}
+    OtaSoftwareUpdateProviderCluster(Messaging::ExchangeManager & exchangeManager, const SessionHandle & session, EndpointId endpoint) : ClusterBase(exchangeManager, session, app::Clusters::OtaSoftwareUpdateProvider::Id, endpoint) {}
     ~OtaSoftwareUpdateProviderCluster() {}
 };
 
 class DLL_EXPORT OccupancySensingCluster : public ClusterBase
 {
 public:
-    OccupancySensingCluster(Messaging::ExchangeManager & exchangeManager, const SessionHandle & session, EndpointId endpoint) :
-        ClusterBase(exchangeManager, session, app::Clusters::OccupancySensing::Id, endpoint)
-    {}
+    OccupancySensingCluster(Messaging::ExchangeManager & exchangeManager, const SessionHandle & session, EndpointId endpoint) : ClusterBase(exchangeManager, session, app::Clusters::OccupancySensing::Id, endpoint) {}
     ~OccupancySensingCluster() {}
 };
 
