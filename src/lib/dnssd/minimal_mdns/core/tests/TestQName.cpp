@@ -349,7 +349,7 @@ static const nlTest sTests[] =
 };
 // clang-format on
 
-int TestQName(void)
+int TestQName()
 {
     // clang-format off
     nlTestSuite theSuite =
