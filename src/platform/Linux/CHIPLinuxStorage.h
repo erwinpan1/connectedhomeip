@@ -57,7 +57,7 @@
 #endif
 
 #ifndef LOCALSTATEFILE
-#define LOCALSTATEFILE "/chip_counter.ini"
+#define LOCALSTATEFILE "/chip_counters.ini"
 #endif
 
 #define CHIP_DEFAULT_FACTORY_PATH                                                                                                  \
