@@ -291,11 +291,11 @@ CHIP_ERROR Server::Init(const ServerInitParams & initParams)
             .certificateValidityPolicy = mCertificateValidityPolicy,
             .exchangeMgr       = &mExchangeMgr,
             .fabricTable       = &mFabrics,
-            .clientPool        = &mCASEClientPool,
             .groupDataProvider = mGroupsProvider,
             .mrpLocalConfig    = GetLocalMRPConfig(),
         },
-        .sessionSetupPool        = &mSessionSetupPool,
+        .clientPool            = &mCASEClientPool,
+        .sessionSetupPool      = &mSessionSetupPool,
     };
 
     err = mCASESessionManager.Init(&DeviceLayer::SystemLayer(), caseSessionManagerConfig);
