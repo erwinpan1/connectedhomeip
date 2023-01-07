@@ -151,6 +151,9 @@ public:
 
     virtual CHIP_ERROR GetLocationCapability(uint8_t & location);
 
+    // Set storage path for all configs/data
+    virtual CHIP_ERROR SetStorageSpace(const char *path) {return CHIP_NO_ERROR;};
+
 protected:
     // ===== Members for internal use by the following friends.
 
@@ -162,7 +165,6 @@ protected:
     // Parentheses used to fix clang parsing issue with these declarations
     friend CHIP_ERROR(::chip::Platform::PersistedStorage::Read)(::chip::Platform::PersistedStorage::Key key, uint32_t & value);
     friend CHIP_ERROR(::chip::Platform::PersistedStorage::Write)(::chip::Platform::PersistedStorage::Key key, uint32_t value);
-
     virtual CHIP_ERROR Init()                                                                                   = 0;
     virtual bool CanFactoryReset()                                                                              = 0;
     virtual CHIP_ERROR ReadPersistedStorageValue(::chip::Platform::PersistedStorage::Key key, uint32_t & value) = 0;

@@ -52,6 +52,7 @@ struct LinuxDeviceOptions
     uint32_t unsecuredCommissionerPort  = CHIP_UDC_PORT;
     const char * command                = nullptr;
     const char * PICS                   = nullptr;
+    const char * StorageSpace           = nullptr;
     const char * KVS                    = nullptr;
     chip::Inet::InterfaceId interfaceId = chip::Inet::InterfaceId::Null();
     bool traceStreamDecodeEnabled       = false;
