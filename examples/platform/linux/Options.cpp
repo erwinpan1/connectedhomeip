@@ -74,6 +74,7 @@ enum
     kDeviceOption_TestEventTriggerEnableKey             = 0x101f,
     kCommissionerOption_FabricID                        = 0x1020,
     kDeviceOption_StorageSpace                          = 0x1021,
+    kDeviceOption_RpcPort                               = 0x1022,
 };
 
 constexpr unsigned kAppUsageLength = 64;
@@ -104,6 +105,7 @@ OptionDef sDeviceOptionDefs[] = {
     { "command", kArgumentRequired, kDeviceOption_Command },
     { "PICS", kArgumentRequired, kDeviceOption_PICS },
     { "storage-space", kArgumentRequired, kDeviceOption_StorageSpace },
+    { "rpc-port", kArgumentRequired, kDeviceOption_RpcPort },
     { "KVS", kArgumentRequired, kDeviceOption_KVS },
     { "interface-id", kArgumentRequired, kDeviceOption_InterfaceId },
 #if CHIP_CONFIG_TRANSPORT_TRACE_ENABLED
@@ -197,6 +199,8 @@ const char * sDeviceOptionHelp =
     "\n"
     "  --storage-space <dirpath>\n"
     "       A folder to store factory data, configs, counters\n"
+    "  --rpc-port <port>\n"
+    "       A 16-bit unsigned integer specifying the port to use for rpc communication (default is 33000).\n"
     "\n"
     "  --KVS <filepath>\n"
     "       A file to store Key Value Store items.\n"
@@ -408,6 +412,10 @@ bool HandleOption(const char * aProgram, OptionSet * aOptions, int aIdentifier, 
 
     case kDeviceOption_StorageSpace:
         LinuxDeviceOptions::GetInstance().StorageSpace = aValue;
+        break;
+
+    case kDeviceOption_RpcPort:
+        LinuxDeviceOptions::GetInstance().RpcPort = static_cast<uint16_t>(atoi(aValue));
         break;
 
     case kDeviceOption_KVS:

@@ -45,6 +45,7 @@ struct LinuxDeviceOptions
     chip::Optional<std::vector<uint8_t>> spake2pSalt;
     uint32_t spake2pIterations          = 0; // When not provided (0), will default elsewhere
     uint32_t mBleDevice                 = 0;
+    uint16_t RpcPort                    = 33000;
     bool mWiFi                          = false;
     bool mThread                        = false;
     uint32_t securedDevicePort          = CHIP_PORT;
