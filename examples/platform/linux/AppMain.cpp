@@ -254,6 +254,7 @@ int ChipLinuxAppInit(int argc, char * const argv[], OptionSet * customOptions)
     }
 
 #if defined(PW_RPC_ENABLED)
+    rpc::SetPort(LinuxDeviceOptions::GetInstance().RpcPort);
     rpc::Init();
     ChipLogProgress(NotSpecified, "PW_RPC initialized.");
 #endif // defined(PW_RPC_ENABLED)
