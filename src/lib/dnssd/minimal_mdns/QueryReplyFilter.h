@@ -112,7 +112,7 @@ private:
 
     bool AcceptablePath(FullQName qname)
     {
-        if (mIgnoreNameMatch || mQueryData.IsInternalBroadcast())
+        if (mIgnoreNameMatch || mQueryData.IsAnnounceBroadcast())
         {
             return true;
         }
