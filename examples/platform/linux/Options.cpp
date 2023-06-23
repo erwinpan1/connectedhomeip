@@ -32,6 +32,10 @@
 
 #include <credentials/examples/DeviceAttestationCredsExample.h>
 
+#if ENABLE_TRACING
+#include <TracingCommandLineArgument.h> // nogncheck
+#endif
+
 using namespace chip;
 using namespace chip::ArgParser;
 
@@ -78,10 +82,10 @@ enum
     kOptionCSRResponseCSRExistingKeyPair                = 0x101e,
     kDeviceOption_TestEventTriggerEnableKey             = 0x101f,
     kCommissionerOption_FabricID                        = 0x1020,
-    kDeviceOption_InterfaceName                         = 0x1021,
-
-    kTestDropCommissionableAdditional = 0x1022,
-    kTestDropOperationalAdditional = 0x1023,
+    kTraceTo                                            = 0x1021,
+    kDeviceOption_InterfaceName                         = 0x1022,
+    kTestDropCommissionableAdditional                   = 0x1023,
+    kTestDropOperationalAdditional                      = 0x1024,
 };
 
 constexpr unsigned kAppUsageLength = 64;
@@ -133,6 +137,9 @@ OptionDef sDeviceOptionDefs[] = {
     { "cert_error_attestation_signature_invalid", kNoArgument, kOptionCSRResponseAttestationSignatureInvalid },
     { "enable-key", kArgumentRequired, kDeviceOption_TestEventTriggerEnableKey },
     { "commissioner-fabric-id", kArgumentRequired, kCommissionerOption_FabricID },
+#if ENABLE_TRACING
+    { "trace-to", kArgumentRequired, kTraceTo },
+#endif
     { "test-drop-commissionable-additional", kNoArgument, kTestDropCommissionableAdditional},
     { "test-drop-operational-additional", kNoArgument, kTestDropOperationalAdditional},
     {}
@@ -253,6 +260,10 @@ const char * sDeviceOptionHelp =
     "       Configure the CSRResponse to be build with an AttestationSignature that does not match what is expected.\n"
     "  --enable-key <key>\n"
     "       A 16-byte, hex-encoded key, used to validate TestEventTrigger command of Generial Diagnostics cluster\n"
+#if ENABLE_TRACING
+    "  --trace-to <destination>\n"
+    "       Trace destinations, comma separated (" SUPPORTED_COMMAND_LINE_TRACING_TARGETS ")\n"
+#endif
     "  --test-drop-commissionable-additional\n"
     "       Drop A/AAAA from additional data on minimal MDNS _matterc._udp record responses\n"
     "  --test-drop-operational-additional\n"
@@ -512,7 +523,11 @@ bool HandleOption(const char * aProgram, OptionSet * aOptions, int aIdentifier, 
         LinuxDeviceOptions::GetInstance().commissionerFabricId = (chip::FabricId) strtoull(aValue, &eptr, 0);
         break;
     }
-
+#if ENABLE_TRACING
+    case kTraceTo:
+        LinuxDeviceOptions::GetInstance().traceTo.push_back(aValue);
+        break;
+#endif
     case kTestDropCommissionableAdditional:
         printf("============= ENABLING drop of additional data A/AAAA records from commissionable mDNS responses! =========\n");
         gDropCommissionableMatterAdditional = true;
@@ -522,7 +537,6 @@ bool HandleOption(const char * aProgram, OptionSet * aOptions, int aIdentifier, 
         printf("============= ENABLING drop of additional data A/AAAA records from operational mDNS responses! =========\n");
         gDropOperationalMatterAdditional = true;
         break;
-
     default:
         PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", aProgram, aName);
         retval = false;
