@@ -83,6 +83,9 @@ enum
     kDeviceOption_TestEventTriggerEnableKey             = 0x101f,
     kCommissionerOption_FabricID                        = 0x1020,
     kTraceTo                                            = 0x1021,
+    kDeviceOption_InterfaceName                         = 0x1022,
+    kTestDropCommissionableAdditional                   = 0x1023,
+    kTestDropOperationalAdditional                      = 0x1024,
 };
 
 constexpr unsigned kAppUsageLength = 64;
@@ -118,6 +121,7 @@ OptionDef sDeviceOptionDefs[] = {
     { "PICS", kArgumentRequired, kDeviceOption_PICS },
     { "KVS", kArgumentRequired, kDeviceOption_KVS },
     { "interface-id", kArgumentRequired, kDeviceOption_InterfaceId },
+    { "interface-name", kArgumentRequired, kDeviceOption_InterfaceName },
 #if CHIP_CONFIG_TRANSPORT_TRACE_ENABLED
     { "trace_file", kArgumentRequired, kDeviceOption_TraceFile },
     { "trace_log", kArgumentRequired, kDeviceOption_TraceLog },
@@ -136,8 +140,15 @@ OptionDef sDeviceOptionDefs[] = {
 #if ENABLE_TRACING
     { "trace-to", kArgumentRequired, kTraceTo },
 #endif
+    { "test-drop-commissionable-additional", kNoArgument, kTestDropCommissionableAdditional},
+    { "test-drop-operational-additional", kNoArgument, kTestDropOperationalAdditional},
     {}
 };
+
+extern "C" {
+extern bool gDropOperationalMatterAdditional;
+extern bool gDropCommissionableMatterAdditional;
+}
 
 const char * sDeviceOptionHelp =
 #if CHIP_DEVICE_CONFIG_ENABLE_CHIPOBLE
@@ -218,7 +229,10 @@ const char * sDeviceOptionHelp =
     "       A file to store Key Value Store items.\n"
     "\n"
     "  --interface-id <interface>\n"
-    "       A interface id to advertise on.\n"
+    "       The network interface id on which to operate/advertise.\n"
+    "\n"
+    "  --interface-name <interface name>\n"
+    "       The network interface name on which to operate/advertise.\n"
 #if CHIP_CONFIG_TRANSPORT_TRACE_ENABLED
     "\n"
     "  --trace_file <file>\n"
@@ -250,6 +264,10 @@ const char * sDeviceOptionHelp =
     "  --trace-to <destination>\n"
     "       Trace destinations, comma separated (" SUPPORTED_COMMAND_LINE_TRACING_TARGETS ")\n"
 #endif
+    "  --test-drop-commissionable-additional\n"
+    "       Drop A/AAAA from additional data on minimal MDNS _matterc._udp record responses\n"
+    "  --test-drop-operational-additional\n"
+    "       Drop A/AAAA from additional data on minimal MDNS _matter._tcp record responses\n"
     "\n";
 
 bool Base64ArgToVector(const char * arg, size_t maxSize, std::vector<uint8_t> & outVector)
@@ -435,6 +453,16 @@ bool HandleOption(const char * aProgram, OptionSet * aOptions, int aIdentifier, 
             Inet::InterfaceId(static_cast<chip::Inet::InterfaceId::PlatformType>(atoi(aValue)));
         break;
 
+    case kDeviceOption_InterfaceName: {
+        CHIP_ERROR err = Inet::InterfaceId::InterfaceNameToId(aValue, LinuxDeviceOptions::GetInstance().interfaceId);
+        if (err != CHIP_NO_ERROR)
+        {
+           PrintArgError("%s: ERROR: argument %s was not parsable as an interface name\n", aProgram, aName);
+           retval = false;
+        }
+        break;
+    }
+
 #if CHIP_CONFIG_TRANSPORT_TRACE_ENABLED
     case kDeviceOption_TraceFile:
         LinuxDeviceOptions::GetInstance().traceStreamFilename.SetValue(std::string{ aValue });
@@ -500,11 +528,21 @@ bool HandleOption(const char * aProgram, OptionSet * aOptions, int aIdentifier, 
         LinuxDeviceOptions::GetInstance().traceTo.push_back(aValue);
         break;
 #endif
+    case kTestDropCommissionableAdditional:
+        printf("============= ENABLING drop of additional data A/AAAA records from commissionable mDNS responses! =========\n");
+        gDropCommissionableMatterAdditional = true;
+        break;
+
+    case kTestDropOperationalAdditional:
+        printf("============= ENABLING drop of additional data A/AAAA records from operational mDNS responses! =========\n");
+        gDropOperationalMatterAdditional = true;
+        break;
     default:
         PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", aProgram, aName);
         retval = false;
         break;
     }
+
 
     return (retval);
 }

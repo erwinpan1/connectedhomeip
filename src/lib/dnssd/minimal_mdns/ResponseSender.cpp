@@ -18,8 +18,14 @@
 #include "ResponseSender.h"
 
 #include "QueryReplyFilter.h"
+#include "lib/dnssd/minimal_mdns/core/QNameString.h"
 
 #include <system/SystemClock.h>
+
+extern "C" {
+bool gDropOperationalMatterAdditional = false;
+bool gDropCommissionableMatterAdditional = false;
+}
 
 namespace mdns {
 namespace Minimal {
@@ -189,6 +195,21 @@ CHIP_ERROR ResponseSender::Respond(uint16_t messageId, const QueryData & query, 
             }
             for (auto it = responder->begin(&responseFilter); it != responder->end(); it++)
             {
+#if 0
+                auto qtype = it->responder->GetQType();
+                if ((qtype == QType::A) || (qtype == QType::AAAA))
+                {
+                    if (strstr(name.c_str(), "_matter._tcp") != nullptr)
+                    {
+                        ChipLogDetail(Discovery, "Skipped A/AAAA (%d) additional data for operational query on %s", (int)qtype, name.c_str());
+                        continue;
+                    }
+                    else
+                    {
+                        ChipLogDetail(Discovery, "Allowed A/AAAA (%d) additional data for operational query on %s", (int)qtype, name.c_str());
+                    }
+                }
+#endif
                 it->responder->AddAllResponses(querySource, this, configuration);
                 ReturnErrorOnFailure(mSendState.GetError());
             }
