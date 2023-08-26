@@ -1688,8 +1688,8 @@ endpoint 1 {
 
   server cluster LevelControl {
     persist  attribute currentLevel default = 0xFE;
-    ram      attribute remainingTime;
-    ram      attribute options;
+    ram      attribute remainingTime default = 0x0000;
+    ram      attribute options default = 0x00;
     ram      attribute onLevel;
     ram      attribute startUpCurrentLevel;
     callback attribute generatedCommandList;
@@ -1712,10 +1712,10 @@ endpoint 1 {
   }
 
   server cluster ColorControl {
-    ram      attribute remainingTime;
+    ram      attribute remainingTime default = 0x0000;
     persist  attribute colorTemperatureMireds default = 0x00FA;
     persist  attribute colorMode default = 0x01;
-    ram      attribute options;
+    ram      attribute options default = 0x00;
     ram      attribute numberOfPrimaries;
     ram      attribute primary1X;
     ram      attribute primary1Y;
@@ -1735,10 +1735,10 @@ endpoint 1 {
     ram      attribute primary6X;
     ram      attribute primary6Y;
     ram      attribute primary6Intensity;
-    persist  attribute enhancedCurrentHue;
+    persist  attribute enhancedCurrentHue default = 0x0000;
     persist  attribute enhancedColorMode default = 0x01;
-    ram      attribute colorCapabilities;
-    ram      attribute colorTempPhysicalMinMireds;
+    ram      attribute colorCapabilities default = 0x0000;
+    ram      attribute colorTempPhysicalMinMireds default = 0x0000;
     ram      attribute colorTempPhysicalMaxMireds default = 0xFEFF;
     ram      attribute coupleColorTempToLevelMinMireds;
     ram      attribute startUpColorTemperatureMireds;
@@ -1749,3 +1749,5 @@ endpoint 1 {
     ram      attribute clusterRevision default = 5;
   }
 }
+
+

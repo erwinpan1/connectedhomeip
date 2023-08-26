@@ -1812,15 +1812,15 @@ endpoint 1 {
 
   server cluster LevelControl {
     persist  attribute currentLevel default = 0xFE;
-    ram      attribute remainingTime;
+    ram      attribute remainingTime default = 0x0000;
     ram      attribute minLevel default = 0x01;
     ram      attribute maxLevel default = 0xFE;
     ram      attribute options default = 0x03;
     ram      attribute onLevel;
     ram      attribute startUpCurrentLevel;
-    callback attribute generatedCommandList;
-    callback attribute acceptedCommandList;
-    callback attribute attributeList;
+    callback attribute generatedCommandList default = 0;
+    callback attribute acceptedCommandList default = 0;
+    callback attribute attributeList default = 0;
     ram      attribute featureMap default = 0x03;
     ram      attribute clusterRevision default = 5;
   }
@@ -1838,9 +1838,9 @@ endpoint 1 {
   }
 
   server cluster ColorControl {
-    persist  attribute currentHue;
-    persist  attribute currentSaturation;
-    ram      attribute remainingTime;
+    persist  attribute currentHue default = 0x00;
+    persist  attribute currentSaturation default = 0x00;
+    ram      attribute remainingTime default = 0x0000;
     ram      attribute currentX default = 0x616B;
     ram      attribute currentY default = 0x607D;
     persist  attribute colorTemperatureMireds default = 0x00FA;
@@ -1865,3 +1865,5 @@ endpoint 1 {
     ram      attribute clusterRevision default = 5;
   }
 }
+
+
