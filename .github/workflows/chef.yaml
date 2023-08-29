@@ -101,7 +101,7 @@ jobs:
     chef_nrfconnect:
         name: Chef - NRFConnect CI Examples
         runs-on: ubuntu-latest
-        if: github.actor != 'restyled-io[bot]'
+        if: ${{ false }}  # disable this workflow in this branch since NRFConnect doesn't support Promise
 
         container:
             image: connectedhomeip/chip-build-nrf-platform:0.7.0

@@ -18,6 +18,11 @@ import("${chip_root}/src/app/common_flags.gni")
 import("${chip_root}/src/lib/core/core.gni")
 import("${chip_root}/src/lib/lib.gni")
 
+declare_args() {
+  # Enable device port parameters
+  chip_device_enable_port_params = true
+}
+
 config("app-main-config") {
   include_dirs = [ "." ]
 }
@@ -61,6 +66,9 @@ source_set("app-main") {
   if (chip_build_libshell) {
     defines += [ "ENABLE_CHIP_SHELL" ]
   }
+  if (chip_device_enable_port_params) {
+    defines += [ "CHIP_DEVICE_ENABLE_PORT_PARAMS" ]
+  }
 
   public_deps = [
     ":ota-test-event-trigger",
@@ -95,6 +103,9 @@ source_set("commissioner-main") {
   }
   if (chip_build_libshell) {
     defines += [ "ENABLE_CHIP_SHELL" ]
+  }
+  if (chip_device_enable_port_params) {
+    defines += [ "CHIP_DEVICE_ENABLE_PORT_PARAMS" ]
   }
 
   public_deps = [

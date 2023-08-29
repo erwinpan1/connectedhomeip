@@ -231,6 +231,10 @@ int ChipLinuxAppInit(int argc, char * const argv[], OptionSet * customOptions)
     err = ParseArguments(argc, argv, customOptions);
     SuccessOrExit(err);
 
+    if (LinuxDeviceOptions::GetInstance().StorageSpace != nullptr) {
+        ConfigurationMgr().SetStorageSpace(LinuxDeviceOptions::GetInstance().StorageSpace);
+    }
+
 #ifdef CHIP_CONFIG_KVS_PATH
     if (LinuxDeviceOptions::GetInstance().KVS == nullptr)
     {
@@ -272,6 +276,7 @@ int ChipLinuxAppInit(int argc, char * const argv[], OptionSet * customOptions)
     }
 
 #if defined(PW_RPC_ENABLED)
+    rpc::SetPort(LinuxDeviceOptions::GetInstance().RpcPort);
     rpc::Init();
     ChipLogProgress(NotSpecified, "PW_RPC initialized.");
 #endif // defined(PW_RPC_ENABLED)

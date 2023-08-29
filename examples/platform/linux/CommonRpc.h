@@ -22,6 +22,7 @@ namespace chip {
 namespace rpc {
 
 int Init();
+int SetPort(uint16_t port);
 
 } // namespace rpc
 } // namespace chip

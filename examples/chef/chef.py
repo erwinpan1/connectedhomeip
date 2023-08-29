@@ -359,6 +359,9 @@ def main() -> int:
         action="store_true", default=False)
     parser.add_option(
         "", "--cpu_type", help="CPU type to compile for. Linux only.", choices=["arm64", "arm", "x64"])
+    parser.add_option(
+        "", "--enable_device_port_params", help="Enable Device CHIP port as parameter (e.g., --secured-device-port and --unsecured-commissioner-port)",
+        action="store_true", default=True)
 
     options, _ = parser.parse_args(sys.argv[1:])
 
@@ -767,6 +770,11 @@ def main() -> int:
                 linux_args.append("chip_inet_config_enable_ipv4=true")
             else:
                 linux_args.append("chip_inet_config_enable_ipv4=false")
+
+            if options.enable_device_port_params:
+                linux_args.append("chip_device_enable_port_params=true")
+            else:
+                linux_args.append("chip_device_enable_port_params=false")
 
             if sw_ver_string:
                 linux_args.append(

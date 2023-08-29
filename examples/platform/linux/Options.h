@@ -45,6 +45,7 @@ struct LinuxDeviceOptions
     chip::Optional<std::vector<uint8_t>> spake2pSalt;
     uint32_t spake2pIterations = 0; // When not provided (0), will default elsewhere
     uint32_t mBleDevice        = 0;
+    uint16_t RpcPort           = 33000;
     bool mWiFi                 = false;
     bool mThread               = false;
 #if CHIP_DEVICE_CONFIG_ENABLE_BOTH_COMMISSIONER_AND_COMMISSIONEE || CHIP_DEVICE_ENABLE_PORT_PARAMS
@@ -56,6 +57,7 @@ struct LinuxDeviceOptions
 #endif                                                 // CHIP_DEVICE_CONFIG_ENABLE_BOTH_COMMISSIONER_AND_COMMISSIONEE
     const char * command                = nullptr;
     const char * PICS                   = nullptr;
+    const char * StorageSpace           = nullptr;
     const char * KVS                    = nullptr;
     chip::Inet::InterfaceId interfaceId = chip::Inet::InterfaceId::Null();
     bool traceStreamDecodeEnabled       = false;
