@@ -85,6 +85,9 @@ enum
     kTraceTo                                            = 0x1021,
     kOptionSimulateNoInternalTime                       = 0x1022,
     kDeviceOption_StorageSpace                          = 0x1023,
+#if defined(PW_RPC_ENABLED)
+    kOptionRpcServerPort				= 0x1024,
+#endif
 };
 
 constexpr unsigned kAppUsageLength = 64;
@@ -140,6 +143,9 @@ OptionDef sDeviceOptionDefs[] = {
     { "trace-to", kArgumentRequired, kTraceTo },
 #endif
     { "simulate-no-internal-time", kNoArgument, kOptionSimulateNoInternalTime },
+#if defined(PW_RPC_ENABLED)
+    { "rpc-port", kArgumentRequired, kOptionRpcServerPort },
+#endif
     {}
 };
 
@@ -259,6 +265,10 @@ const char * sDeviceOptionHelp =
 #endif
     "  --simulate-no-internal-time\n"
     "       Time cluster does not use internal platform time\n"
+#if defined(PW_RPC_ENABLED)
+    "  --rpc-port\n"
+    "       Start RPC server on specified port\n"
+#endif
     "\n";
 
 bool Base64ArgToVector(const char * arg, size_t maxSize, std::vector<uint8_t> & outVector)
@@ -516,6 +526,11 @@ bool HandleOption(const char * aProgram, OptionSet * aOptions, int aIdentifier, 
     case kOptionSimulateNoInternalTime:
         LinuxDeviceOptions::GetInstance().mSimulateNoInternalTime = true;
         break;
+#if defined(PW_RPC_ENABLED)
+    case kOptionRpcServerPort:
+        LinuxDeviceOptions::GetInstance().rpcServerPort = static_cast<uint16_t>(atoi(aValue));
+        break;
+#endif
     default:
         PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", aProgram, aName);
         retval = false;
