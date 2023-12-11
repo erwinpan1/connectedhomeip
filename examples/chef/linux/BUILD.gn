@@ -47,6 +47,7 @@ executable("${sample_name}") {
     "${project_dir}/common/chef-concentration-measurement.cpp",
     "${project_dir}/common/chef-rvc-mode-delegate.cpp",
     "${project_dir}/common/chef-rvc-operational-state-delegate.cpp",
+    "${project_dir}/common/chef-binding-handler.cpp",
     "${project_dir}/common/stubs.cpp",
     "${project_dir}/linux/main.cpp",
   ]
