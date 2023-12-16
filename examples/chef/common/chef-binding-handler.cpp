@@ -380,12 +380,35 @@ void ChefBindingHandler::Init(chip::EndpointId endpoint)
     DeviceLayer::PlatformMgr().ScheduleWork(InitInternal, endpoint);
 }
 
+#include "Rpc.h"
+
+void ChefBindingCommandHandler(intptr_t ctx, chip::rpc::BindingCommandRequest * command)
+{
+    // TODO: delete data
+    ChefBindingHandler::BindingData * data = Platform::New<ChefBindingHandler::BindingData>();
+    if (data)
+    {
+printf("\033[41 %s, %d, endpoint=%d, clusterId=%d, commandId=%d \033[0m \n", __func__, __LINE__, command->endpoint, command->clusterId, command->commandId);
+        data->EndpointId = command->endpoint;
+        data->ClusterId  = command->clusterId;
+	data->CommandId = command->commandId;
+        data->IsGroup = ChefBindingHandler::GetInstance().IsGroupBound();
+
+	ChefBindingHandler::SwitchWorkerHandler(reinterpret_cast<intptr_t>(data));
+        // DeviceLayer::PlatformMgr().ScheduleWork(ChefBindingHandler::SwitchWorkerHandler, reinterpret_cast<intptr_t>(data));
+        // TODO: Platform::Delete(data);
+    }
+}
+
+#include "Rpc.h"
 
 void emberAfBindingClusterInitCallback(EndpointId endpoint)
 {
+    intptr_t ctx = 1;
 printf("\033[41m %s, %d \033[0m  \n", __func__, __LINE__);
 
     ChefBindingHandler::GetInstance().Init(endpoint);
+    chip::rpc::RpcRegisterAppBindingCommandHander(ChefBindingCommandHandler, ctx);
 /*
     auto & server = chip::Server::GetInstance();
     chip::BindingManager::GetInstance().Init(
@@ -395,30 +418,3 @@ printf("\033[41m %s, %d \033[0m  \n", __func__, __LINE__);
 */
 }
 
-
-void ChefInitiateActionSwitch(ChefBindingHandler::SwitchAction mAction)
-{
-    ChefBindingHandler::BindingData * data = Platform::New<ChefBindingHandler::BindingData>();
-    if (data)
-    {
-        data->EndpointId = 1; //mLightSwitchEndpoint;
-        data->ClusterId  = Clusters::OnOff::Id;
-        switch (mAction)
-        {
-        case ChefBindingHandler::SwitchAction::Toggle:
-            data->CommandId = Clusters::OnOff::Commands::Toggle::Id;
-            break;
-        case ChefBindingHandler::SwitchAction::On:
-            data->CommandId = Clusters::OnOff::Commands::On::Id;
-            break;
-        case ChefBindingHandler::SwitchAction::Off:
-            data->CommandId = Clusters::OnOff::Commands::Off::Id;
-            break;
-        default:
-            Platform::Delete(data);
-            return;
-        }
-        data->IsGroup = ChefBindingHandler::GetInstance().IsGroupBound();
-        DeviceLayer::PlatformMgr().ScheduleWork(ChefBindingHandler::SwitchWorkerHandler, reinterpret_cast<intptr_t>(data));
-    }
-}

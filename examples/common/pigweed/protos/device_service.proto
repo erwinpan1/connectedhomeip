@@ -49,6 +49,13 @@ message RebootRequest {
   uint32 delay_ms = 1;
 }
 
+message BindingMetadata {
+  uint32 endpoint = 1;
+  uint32 cluster_id = 2;
+  uint32 command_id = 3;
+  uint32 value = 4;
+}
+
 service Device {
   rpc FactoryReset(pw.protobuf.Empty) returns (pw.protobuf.Empty){}
   rpc Reboot(RebootRequest) returns (pw.protobuf.Empty){}
@@ -61,4 +68,5 @@ service Device {
   rpc SetPairingInfo(PairingInfo) returns (pw.protobuf.Empty){}
   rpc GetSpakeInfo(pw.protobuf.Empty) returns (SpakeInfo){}
   rpc SetSpakeInfo(SpakeInfo) returns (pw.protobuf.Empty){}
+  rpc EmitBindingCommandRequest(BindingMetadata) returns (pw.protobuf.Empty){}
 }

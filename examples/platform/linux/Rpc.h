@@ -21,6 +21,17 @@
 namespace chip {
 namespace rpc {
 
+struct BindingCommandRequest {
+    uint32_t endpoint;
+    uint32_t clusterId;
+    uint32_t commandId;
+    uint32_t value;
+};
+
+using AppBindingCommandHandler = void (*)(intptr_t ctx, struct BindingCommandRequest * data);
+
+void RpcRegisterAppBindingCommandHander(AppBindingCommandHandler buttonCallback, intptr_t ctx);
+
 int Init(uint16_t rpcServerPort);
 
 } // namespace rpc
