@@ -327,59 +327,12 @@ void ChefBindingHandler::SwitchWorkerHandler(intptr_t context)
     BindingManager::GetInstance().NotifyBoundClusterChanged(data->EndpointId, data->ClusterId, static_cast<void *>(data));
 }
 
-/*
-static void ChefBoundDeviceChangedHandler(const EmberBindingTableEntry & binding, chip::OperationalDeviceProxy * peer_device,
-                                      void * context)
-{
-    using namespace chip;
-    using namespace chip::app;
-
-    if (binding.type == EMBER_MULTICAST_BINDING)
-    {
-        ChipLogError(NotSpecified, "Group binding is not supported now");
-        return;
-    }
-
-printf("\033[41m %s, %d \033[0m  \n", __func__, __LINE__);
-
-    if (binding.type == EMBER_UNICAST_BINDING && binding.local == 1 &&
-        (!binding.clusterId.HasValue() || binding.clusterId.Value() == Clusters::OnOff::Id))
-    {
-        auto onSuccess = [](const ConcreteCommandPath & commandPath, const StatusIB & status, const auto & dataResponse) {
-            ChipLogProgress(NotSpecified, "OnOff command succeeds");
-        };
-        auto onFailure = [](CHIP_ERROR ret) {
-            ChipLogError(NotSpecified, "OnOff command failed: %" CHIP_ERROR_FORMAT, ret.Format());
-        };
-
-        VerifyOrDie(peer_device != nullptr && peer_device->ConnectionReady());
-        if (sSwitchOnOffState)
-        {
-            Clusters::OnOff::Commands::On::Type onCommand;
-            Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
-                                             binding.remote, onCommand, onSuccess, onFailure);
-        }
-        else
-        {
-            Clusters::OnOff::Commands::Off::Type offCommand;
-            Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
-                                             binding.remote, offCommand, onSuccess, onFailure);
-        }
-    }
-}
-*/
-
-/*
-static void ChefBoundDeviceContextReleaseHandler(void * context)
-{
-    (void) context;
-}
-*/
 void ChefBindingHandler::Init(chip::EndpointId endpoint)
 {
     DeviceLayer::PlatformMgr().ScheduleWork(InitInternal, endpoint);
 }
 
+#if CONFIG_ENABLE_PW_RPC == 1
 #include "Rpc.h"
 
 void ChefBindingCommandHandler(intptr_t ctx, chip::rpc::BindingCommandRequest * command)
@@ -395,26 +348,19 @@ printf("\033[41 %s, %d, endpoint=%d, clusterId=%d, commandId=%d \033[0m \n", __f
         data->IsGroup = ChefBindingHandler::GetInstance().IsGroupBound();
 
 	ChefBindingHandler::SwitchWorkerHandler(reinterpret_cast<intptr_t>(data));
-        // DeviceLayer::PlatformMgr().ScheduleWork(ChefBindingHandler::SwitchWorkerHandler, reinterpret_cast<intptr_t>(data));
         // TODO: Platform::Delete(data);
     }
 }
-
-#include "Rpc.h"
+#endif // CONFIG_ENABLE_PW_RPC
 
 void emberAfBindingClusterInitCallback(EndpointId endpoint)
 {
-    intptr_t ctx = 1;
 printf("\033[41m %s, %d \033[0m  \n", __func__, __LINE__);
 
     ChefBindingHandler::GetInstance().Init(endpoint);
+#if CONFIG_ENABLE_PW_RPC == 1
+    intptr_t ctx = 1;
     chip::rpc::RpcRegisterAppBindingCommandHander(ChefBindingCommandHandler, ctx);
-/*
-    auto & server = chip::Server::GetInstance();
-    chip::BindingManager::GetInstance().Init(
-        { &server.GetFabricTable(), server.GetCASESessionManager(), &server.GetPersistentStorage() });
-    chip::BindingManager::GetInstance().RegisterBoundDeviceChangedHandler(ChefBoundDeviceChangedHandler);
-    chip::BindingManager::GetInstance().RegisterBoundDeviceContextReleaseHandler(ChefBoundDeviceContextReleaseHandler);
-*/
+#endif // CONFIG_ENABLE_PW_RPC
 }
 

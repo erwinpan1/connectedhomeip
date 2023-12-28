@@ -22,7 +22,7 @@ namespace chip {
 namespace rpc {
 
 struct BindingCommandRequest {
-    uint32_t endpoint;
+    uint16_t endpoint;
     uint32_t clusterId;
     uint32_t commandId;
     uint32_t value;

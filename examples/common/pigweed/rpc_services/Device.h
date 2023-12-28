@@ -480,7 +480,7 @@ public:
         return pw::OkStatus();
     }
 
-    using BindingCommandHandler = void (*)(uint32_t endpoint, uint32_t clusterId, uint32_t commandId, uint32_t value); 
+    using BindingCommandHandler = void (*)(uint16_t endpoint, uint32_t clusterId, uint32_t commandId, uint32_t value); 
 
     void RegisterBindingCommandHandler(BindingCommandHandler handler) { mBindingCommandHandler = handler; }
 

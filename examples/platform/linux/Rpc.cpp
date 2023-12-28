@@ -87,7 +87,7 @@ printf("\033[41m %s , %d, endpoint=%d, clusterId=%d, commandId=%d \033[0m \n", _
     delete data;
 }
 
-void RpcBindingCommandHandler(uint32_t endpoint, uint32_t clusterId, uint32_t commandId, uint32_t value) 
+void RpcBindingCommandHandler(uint16_t endpoint, uint32_t clusterId, uint32_t commandId, uint32_t value) 
 {
     struct BindingCommandRequest * data = new BindingCommandRequest{endpoint, clusterId, commandId};
 printf("\033[41m %s , %d \033[0m \n", __func__, __LINE__);
