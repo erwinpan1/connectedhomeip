@@ -119,3 +119,19 @@ void Shutdown();
 } // namespace Clusters
 } // namespace app
 } // namespace chip
+
+#ifdef EMBER_AF_PLUGIN_RVC_RUN_MODE_SERVER
+EmberAfStatus chefRvcRunModeWriteCallback(chip::EndpointId endpoint, chip::ClusterId clusterId,
+                                          const EmberAfAttributeMetadata * attributeMetadata, uint8_t * buffer);
+EmberAfStatus chefRvcRunModeReadCallback(chip::EndpointId endpoint, chip::ClusterId clusterId,
+                                         const EmberAfAttributeMetadata * attributeMetadata, uint8_t * buffer,
+                                         uint16_t maxReadLength);
+#endif
+
+#ifdef EMBER_AF_PLUGIN_RVC_CLEAN_MODE_SERVER
+EmberAfStatus chefRvcCleanModeWriteCallback(chip::EndpointId endpoint, chip::ClusterId clusterId,
+                                          const EmberAfAttributeMetadata * attributeMetadata, uint8_t * buffer);
+EmberAfStatus chefRvcCleanModeReadCallback(chip::EndpointId endpoint, chip::ClusterId clusterId,
+                                         const EmberAfAttributeMetadata * attributeMetadata, uint8_t * buffer,
+                                         uint16_t maxReadLength);
+#endif

@@ -18,13 +18,14 @@
 #include <app-common/zap-generated/attributes/Accessors.h>
 #include <app/util/config.h>
 
+using namespace chip;
+using namespace chip::app;
 using namespace chip::app::Clusters;
-using chip::Protocols::InteractionModel::Status;
 template <typename T>
 using List              = chip::app::DataModel::List<T>;
 using ModeTagStructType = chip::app::Clusters::detail::Structs::ModeTagStruct::Type;
 
-#ifdef ZCL_USING_RVC_RUN_MODE_CLUSTER_SERVER
+#ifdef EMBER_AF_PLUGIN_RVC_RUN_MODE_SERVER
 #include <chef-rvc-mode-delegate.h>
 using namespace chip::app::Clusters::RvcRunMode;
 static RvcRunModeDelegate * gRvcRunModeDelegate = nullptr;
@@ -106,17 +107,60 @@ void RvcRunMode::Shutdown()
     }
 }
 
+EmberAfStatus chefRvcRunModeWriteCallback(chip::EndpointId endpointId, chip::ClusterId clusterId,
+                                          const EmberAfAttributeMetadata * attributeMetadata, uint8_t * buffer)
+{
+    EmberAfStatus ret = EMBER_ZCL_STATUS_SUCCESS;
+
+    VerifyOrDie(endpointId == 1); // this cluster is only enabled for endpoint 1.
+    VerifyOrDie(gRvcRunModeInstance != nullptr);
+
+    ModeBase::Instance * clusterInstance = gRvcRunModeInstance;
+    chip::AttributeId attributeId    = attributeMetadata->attributeId;
+
+    switch (attributeId)
+    {
+    case chip::app::Clusters::RvcRunMode::Attributes::CurrentMode::Id: {
+        uint8_t m                           = static_cast<uint8_t>(buffer[0]);
+        Protocols::InteractionModel::Status status = clusterInstance->UpdateCurrentMode(m);
+        if (Protocols::InteractionModel::Status::Success == status)
+        {
+            break;
+        }
+        ret = EMBER_ZCL_STATUS_UNSUPPORTED_WRITE;
+        ChipLogError(DeviceLayer, "Invalid Attribute Update status: %d", static_cast<int>(status));
+    }
+    break;
+    default:
+        ret = EMBER_ZCL_STATUS_UNSUPPORTED_ATTRIBUTE;
+        ChipLogError(DeviceLayer, "Unsupported Attribute ID: %d", static_cast<int>(attributeId));
+        break;
+    }
+
+    return ret;
+}
+
+EmberAfStatus chefRvcRunModeReadCallback(chip::EndpointId endpointId, chip::ClusterId clusterId,
+                                         const EmberAfAttributeMetadata * attributeMetadata, uint8_t * buffer,
+                                         uint16_t maxReadLength)
+{
+    EmberAfStatus ret = EMBER_ZCL_STATUS_SUCCESS;
+
+    return ret;
+}
+
 void emberAfRvcRunModeClusterInitCallback(chip::EndpointId endpointId)
 {
     VerifyOrDie(endpointId == 1); // this cluster is only enabled for endpoint 1.
     VerifyOrDie(gRvcRunModeDelegate == nullptr && gRvcRunModeInstance == nullptr);
     gRvcRunModeDelegate = new RvcRunMode::RvcRunModeDelegate;
     gRvcRunModeInstance =
-        new ModeBase::Instance(gRvcRunModeDelegate, 0x1, RvcRunMode::Id, chip::to_underlying(RvcRunMode::Feature::kOnOff));
+        new ModeBase::Instance(gRvcRunModeDelegate, endpointId, RvcRunMode::Id, chip::to_underlying(RvcRunMode::Feature::kOnOff));
     gRvcRunModeInstance->Init();
 }
+#endif // EMBER_AF_PLUGIN_RVC_RUN_MODE_SERVER
 
-#ifdef ZCL_USING_RVC_CLEAN_MODE_CLUSTER_SERVER
+#ifdef EMBER_AF_PLUGIN_RVC_CLEAN_MODE_SERVER
 #include <chef-rvc-mode-delegate.h>
 using namespace chip::app::Clusters::RvcCleanMode;
 static RvcCleanModeDelegate * gRvcCleanModeDelegate = nullptr;
@@ -197,6 +241,48 @@ void RvcCleanMode::Shutdown()
     }
 }
 
+EmberAfStatus chefRvcCleanModeWriteCallback(chip::EndpointId endpointId, chip::ClusterId clusterId,
+                                          const EmberAfAttributeMetadata * attributeMetadata, uint8_t * buffer)
+{
+    EmberAfStatus ret = EMBER_ZCL_STATUS_SUCCESS;
+
+    VerifyOrDie(endpointId == 1); // this cluster is only enabled for endpoint 1.
+    VerifyOrDie(gRvcCleanModeInstance != nullptr);
+
+    ModeBase::Instance * clusterInstance = gRvcCleanModeInstance;
+    chip::AttributeId attributeId    = attributeMetadata->attributeId;
+
+    switch (attributeId)
+    {
+    case chip::app::Clusters::RvcCleanMode::Attributes::CurrentMode::Id: {
+        uint8_t m                           = static_cast<uint8_t>(buffer[0]);
+        Protocols::InteractionModel::Status status = clusterInstance->UpdateCurrentMode(m);
+        if (Protocols::InteractionModel::Status::Success == status)
+        {
+            break;
+        }
+        ret = EMBER_ZCL_STATUS_UNSUPPORTED_WRITE;
+        ChipLogError(DeviceLayer, "Invalid Attribute Update status: %d", static_cast<int>(status));
+    }
+    break;
+    default:
+        ret = EMBER_ZCL_STATUS_UNSUPPORTED_ATTRIBUTE;
+        ChipLogError(DeviceLayer, "Unsupported Attribute ID: %d", static_cast<int>(attributeId));
+        break;
+    }
+
+    return ret;
+}
+
+EmberAfStatus chefRvcCleanModeReadCallback(chip::EndpointId endpointId, chip::ClusterId clusterId,
+                                         const EmberAfAttributeMetadata * attributeMetadata, uint8_t * buffer,
+                                         uint16_t maxReadLength)
+{
+    EmberAfStatus ret = EMBER_ZCL_STATUS_SUCCESS;
+
+    return ret;
+}
+
 void emberAfRvcCleanModeClusterInitCallback(chip::EndpointId endpointId)
 {
     VerifyOrDie(endpointId == 1); // this cluster is only enabled for endpoint 1.
@@ -206,5 +292,4 @@ void emberAfRvcCleanModeClusterInitCallback(chip::EndpointId endpointId)
         new ModeBase::Instance(gRvcCleanModeDelegate, 0x1, RvcCleanMode::Id, chip::to_underlying(RvcCleanMode::Feature::kOnOff));
     gRvcCleanModeInstance->Init();
 }
-#endif // ZCL_USING_RVC_CLEAN_MODE_CLUSTER_SERVER
-#endif // ZCL_USING_RVC_RUN_MODE_CLUSTER_SERVER
+#endif // EMBER_AF_PLUGIN_RVC_CLEAN_MODE_SERVER

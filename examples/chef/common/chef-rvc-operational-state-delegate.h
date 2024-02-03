@@ -155,3 +155,12 @@ void Shutdown();
 } // namespace Clusters
 } // namespace app
 } // namespace chip
+
+#ifdef EMBER_AF_PLUGIN_RVC_OPERATIONAL_STATE_SERVER
+EmberAfStatus chefRvcOperationalStateWriteCallback(chip::EndpointId endpoint, chip::ClusterId clusterId,
+                                          const EmberAfAttributeMetadata * attributeMetadata, uint8_t * buffer);
+EmberAfStatus chefRvcOperationalStateReadCallback(chip::EndpointId endpoint, chip::ClusterId clusterId,
+                                         const EmberAfAttributeMetadata * attributeMetadata, uint8_t * buffer,
+                                         uint16_t maxReadLength);
+#endif
+

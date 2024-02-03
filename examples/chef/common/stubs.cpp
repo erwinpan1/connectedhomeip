@@ -18,6 +18,13 @@
     defined(EMBER_AF_PLUGIN_RADON_CONCENTRATION_MEASUREMENT_SERVER)
 #include "chef-concentration-measurement.h"
 #endif
+#if defined(EMBER_AF_PLUGIN_RVC_RUN_MODE_SERVER) ||                                                                              \
+    defined(EMBER_AF_PLUGIN_RVC_CLEAN_MODE_SERVER)
+#include "chef-rvc-mode-delegate.h"
+#endif
+#ifdef EMBER_AF_PLUGIN_RVC_OPERATIONAL_STATE_SERVER
+#include "chef-rvc-operational-state-delegate.h"
+#endif
 
 using chip::app::DataModel::Nullable;
 
@@ -27,6 +34,7 @@ EmberAfStatus emberAfExternalAttributeReadCallback(EndpointId endpoint, ClusterI
                                                    const EmberAfAttributeMetadata * attributeMetadata, uint8_t * buffer,
                                                    uint16_t maxReadLength)
 {
+
     switch (clusterId)
     {
 #ifdef EMBER_AF_PLUGIN_AIR_QUALITY_SERVER
@@ -101,6 +109,21 @@ EmberAfStatus emberAfExternalAttributeWriteCallback(EndpointId endpoint, Cluster
     case chip::app::Clusters::RadonConcentrationMeasurement::Id:
     case chip::app::Clusters::TotalVolatileOrganicCompoundsConcentrationMeasurement::Id:
         return chefConcentrationMeasurementWriteCallback(endpoint, clusterId, attributeMetadata, buffer);
+#endif
+#ifdef EMBER_AF_PLUGIN_RVC_RUN_MODE_SERVER
+    case chip::app::Clusters::RvcRunMode::Id:
+        return chefRvcRunModeWriteCallback(endpoint, clusterId, attributeMetadata, buffer);
+        break;
+#endif
+#ifdef EMBER_AF_PLUGIN_RVC_CLEAN_MODE_SERVER
+    case chip::app::Clusters::RvcCleanMode::Id:
+        return chefRvcCleanModeWriteCallback(endpoint, clusterId, attributeMetadata, buffer);
+        break;
+#endif
+#ifdef EMBER_AF_PLUGIN_RVC_OPERATIONAL_STATE_SERVER
+    case chip::app::Clusters::RvcOperationalState::Id:
+        return chefRvcOperationalStateWriteCallback(endpoint, clusterId, attributeMetadata, buffer);
+        break;
 #endif
     default:
         break;
