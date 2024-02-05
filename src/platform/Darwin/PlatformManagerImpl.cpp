@@ -159,7 +159,7 @@ bool PlatformManagerImpl::_IsChipStackLockedByCurrentThread() const
 {
     // If we have no work queue, or it's suspended, then we assume our caller
     // knows what they are doing in terms of their own concurrency.
-    return !mWorkQueue || mIsWorkQueueSuspended || IsWorkQueueCurrentQueue();
+    return !mWorkQueue || mIsWorkQueueSuspended || IsWorkQueueCurrentQueue() || (mChipStackIsLocked && (pthread_equal(pthread_self(), mChipStackLockOwnerThread)));
 };
 #endif
 
