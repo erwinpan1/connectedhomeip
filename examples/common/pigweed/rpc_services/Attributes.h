@@ -28,22 +28,9 @@
 #include <lib/core/TLVTags.h>
 #include <lib/core/TLVTypes.h>
 #include <platform/PlatformManager.h>
-#include <future>
 
 namespace chip {
 namespace rpc {
-
-struct WriteArgs {
-    std::promise<EmberAfStatus> *promise;
-    const chip_rpc_AttributeWrite *request;
-    const void *data;
-};
-
-struct ReadArgs {
-    std::promise<CHIP_ERROR> *promise;
-    const app::ConcreteAttributePath *path;
-    app::AttributeReportIBs::Builder *attributeReports;
-};
 
 // Implementation class for chip.rpc.Attributes.
 class Attributes : public pw_rpc::nanopb::Attributes::Service<Attributes>
@@ -52,6 +39,8 @@ public:
     ::pw::Status Write(const chip_rpc_AttributeWrite & request, pw_protobuf_Empty & response)
     {
         const void * data;
+        DeviceLayer::StackLock lock;
+
         switch (request.data.which_data)
         {
         case chip_rpc_AttributeData_data_bool_tag:
@@ -81,28 +70,9 @@ public:
         default:
             return pw::Status::InvalidArgument();
         }
-
-        std::promise<EmberAfStatus> writeStatusPromise;
-        WriteArgs writeArgs = {
-            .promise = &writeStatusPromise,
-            .request = &request,
-            .data = data,
-        };
-        chip::DeviceLayer::PlatformMgr().ScheduleWork([](intptr_t ctx) {
-            DeviceLayer::StackLock lock;
-
-            WriteArgs *args = reinterpret_cast<WriteArgs*>(ctx);
-            args->promise->set_value(
-                 emberAfWriteAttribute(
-                     args->request->metadata.endpoint,
-                     args->request->metadata.cluster,
-                     args->request->metadata.attribute_id,
-                     const_cast<uint8_t *>(static_cast<const uint8_t *>(args->data)),
-                     args->request->metadata.type));
-        }, reinterpret_cast<intptr_t>(&writeArgs));
-
-        RETURN_STATUS_IF_NOT_OK(writeStatusPromise.get_future().get());
-
+        RETURN_STATUS_IF_NOT_OK(
+            emberAfWriteAttribute(request.metadata.endpoint, request.metadata.cluster, request.metadata.attribute_id,
+                                  const_cast<uint8_t *>(static_cast<const uint8_t *>(data)), request.metadata.type));
         return pw::OkStatus();
     }
 
@@ -220,6 +190,7 @@ private:
 
     ::pw::Status ReadAttributeIntoTlvBuffer(const app::ConcreteAttributePath & path, MutableByteSpan & tlvBuffer)
     {
+        Access::SubjectDescriptor subjectDescriptor{ .authMode = chip::Access::AuthMode::kPase };
         app::AttributeReportIBs::Builder attributeReports;
         TLV::TLVWriter writer;
         TLV::TLVType outer;
@@ -228,21 +199,7 @@ private:
         writer.Init(tlvBuffer);
         PW_TRY(ChipErrorToPwStatus(writer.StartContainer(TLV::AnonymousTag(), TLV::kTLVType_Structure, outer)));
         PW_TRY(ChipErrorToPwStatus(attributeReports.Init(&writer, kReportContextTag)));
-
-        std::promise<CHIP_ERROR> readStatusPromise;
-        ReadArgs readArgs = {
-            .promise = &readStatusPromise,
-            .path = &path,
-            .attributeReports = &attributeReports,
-        };
-        chip::DeviceLayer::PlatformMgr().ScheduleWork([](intptr_t ctx) {
-            Access::SubjectDescriptor subjectDescriptor{ .authMode = chip::Access::AuthMode::kPase };
-            ReadArgs *args = reinterpret_cast<ReadArgs*>(ctx);
-            args->promise->set_value(app::ReadSingleClusterData(subjectDescriptor, false, *(args->path), *(args->attributeReports), nullptr));
-        }, reinterpret_cast<intptr_t>(&readArgs));
-
-        PW_TRY(ChipErrorToPwStatus(readStatusPromise.get_future().get()));
-
+        PW_TRY(ChipErrorToPwStatus(app::ReadSingleClusterData(subjectDescriptor, false, path, attributeReports, nullptr)));
         attributeReports.EndOfContainer();
         PW_TRY(ChipErrorToPwStatus(writer.EndContainer(outer)));
         PW_TRY(ChipErrorToPwStatus(writer.Finalize()));
