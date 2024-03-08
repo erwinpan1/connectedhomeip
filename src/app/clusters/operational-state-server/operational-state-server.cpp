@@ -26,6 +26,7 @@
 #include <app/InteractionModelEngine.h>
 #include <app/reporting/reporting.h>
 #include <app/util/attribute-storage.h>
+#include <app/SafeAttributePersistenceProvider.h>
 
 using namespace chip;
 using namespace chip::app;
@@ -58,6 +59,9 @@ CHIP_ERROR Instance::Init()
     }
 
     ReturnErrorOnFailure(InteractionModelEngine::GetInstance()->RegisterCommandHandler(this));
+
+    ReturnErrorOnFailure(GetSafeAttributePersistenceProvider()->ReadScalarValue(
+        ConcreteAttributePath(mEndpointId, mClusterId, Attributes::OperationalState::Id), mOperationalState));
 
     VerifyOrReturnError(registerAttributeAccessOverride(this), CHIP_ERROR_INCORRECT_STATE);
 
@@ -101,7 +105,10 @@ CHIP_ERROR Instance::SetOperationalState(uint8_t aOpState)
     mOperationalState = aOpState;
     if (mOperationalState != oldState)
     {
-        MatterReportingAttributeChangeCallback(mEndpointId, mClusterId, Attributes::OperationalState::Id);
+        // Write new value to persistent storage.
+        ConcreteAttributePath path = ConcreteAttributePath(mEndpointId, mClusterId, Attributes::OperationalState::Id);
+        GetSafeAttributePersistenceProvider()->WriteScalarValue(path, mOperationalState);
+        MatterReportingAttributeChangeCallback(path);
     }
     return CHIP_NO_ERROR;
 }
