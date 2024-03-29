@@ -114,7 +114,7 @@ static void InitServer(intptr_t context)
 {
     Esp32AppServer::Init(&sCallbacks); // Init ZCL Data Model and CHIP App Server AND Initialize device attestation config
 
-#if !(CHIP_DEVICE_CONFIG_ENABLE_WIFI && CHIP_DEVICE_CONFIG_ENABLE_THREAD)
+#if !(CHIP_DEVICE_CONFIG_ENABLE_WIFI && (CHIP_DEVICE_CONFIG_ENABLE_THREAD || CHIP_DEVICE_CONFIG_ENABLE_ETHERNET))
     // We only have network commissioning on endpoint 0.
     emberAfEndpointEnableDisable(kNetworkCommissioningEndpointSecondary, false);
 #endif
@@ -131,6 +131,24 @@ static void InitServer(intptr_t context)
     }
 
     app::Clusters::TemperatureControl::SetInstance(&sAppSupportedTemperatureLevelsDelegate);
+}
+
+// #include <laundry-washer-controls-server/laundry-washer-controls-server.h>
+#include <examples/all-clusters-app/all-clusters-common/include/laundry-washer-controls-delegate-impl.h>
+#include <src/app/clusters/laundry-washer-controls-server/laundry-washer-controls-server.h>
+
+using namespace chip::app::Clusters::LaundryWasherControls;
+void emberAfLaundryWasherControlsClusterInitCallback(EndpointId endpoint)
+{
+    LaundryWasherControlsServer::SetDefaultDelegate(1, &LaundryWasherControlDelegate::getLaundryWasherControlDelegate());
+}
+
+#include <examples/all-clusters-app/all-clusters-common/include/laundry-dryer-controls-delegate-impl.h>
+#include <src/app/clusters/laundry-dryer-controls-server/laundry-dryer-controls-server.h>
+using namespace chip::app::Clusters::LaundryDryerControls;
+void emberAfLaundryDryerControlsClusterInitCallback(EndpointId endpoint)
+{
+    LaundryDryerControlsServer::SetDefaultDelegate(endpoint, &LaundryDryerControlDelegate::getLaundryDryerControlDelegate());
 }
 
 extern "C" void app_main()

@@ -37,6 +37,8 @@ CHIP_ERROR PairingCommand::RunCommand()
     // Clear the CATs in OperationalCredentialsIssuer
     mCredIssuerCmds->SetCredentialIssuerCATValues(kUndefinedCATs);
 
+    mDeviceIsICD = false;
+
     if (mCASEAuthTags.HasValue() && mCASEAuthTags.Value().size() <= kMaxSubjectCATAttributeCount)
     {
         CATValues cats = kUndefinedCATs;
@@ -152,6 +154,10 @@ CommissioningParameters PairingCommand::GetCommissioningParameters()
         // These Optionals must have values now.
         // The commissioner will verify these values.
         params.SetICDSymmetricKey(mICDSymmetricKey.Value());
+        if (mICDStayActiveDurationMsec.HasValue())
+        {
+            params.SetICDStayActiveDurationMsec(mICDStayActiveDurationMsec.Value());
+        }
         params.SetICDCheckInNodeId(mICDCheckInNodeId.Value());
         params.SetICDMonitoredSubject(mICDMonitoredSubject.Value());
     }
@@ -385,16 +391,47 @@ void PairingCommand::OnCommissioningComplete(NodeId nodeId, CHIP_ERROR err)
     }
     else
     {
+        // When ICD device commissioning fails, the ICDClientInfo stored in OnICDRegistrationComplete needs to be removed.
+        if (mDeviceIsICD)
+        {
+            CHIP_ERROR deleteEntryError =
+                CHIPCommand::sICDClientStorage.DeleteEntry(ScopedNodeId(mNodeId, CurrentCommissioner().GetFabricIndex()));
+            if (deleteEntryError != CHIP_NO_ERROR)
+            {
+                ChipLogError(chipTool, "Failed to delete ICD entry: %s", ErrorStr(err));
+            }
+        }
         ChipLogProgress(chipTool, "Device commissioning Failure: %s", ErrorStr(err));
     }
 
     SetCommandExitStatus(err);
 }
 
-void PairingCommand::OnICDRegistrationInfoRequired()
+void PairingCommand::OnReadCommissioningInfo(const Controller::ReadCommissioningInfo & info)
 {
-    // Since we compute our ICD Registration info up front, we can call ICDRegistrationInfoReady() directly.
-    CurrentCommissioner().ICDRegistrationInfoReady();
+    ChipLogProgress(AppServer, "OnReadCommissioningInfo - vendorId=0x%04X productId=0x%04X", info.basic.vendorId,
+                    info.basic.productId);
+
+    // The string in CharSpan received from the device is not null-terminated, we use std::string here for coping and
+    // appending a numm-terminator at the end of the string.
+    std::string userActiveModeTriggerInstruction;
+
+    // Note: the callback doesn't own the buffer, should make a copy if it will be used it later.
+    if (info.icd.userActiveModeTriggerInstruction.size() != 0)
+    {
+        userActiveModeTriggerInstruction =
+            std::string(info.icd.userActiveModeTriggerInstruction.data(), info.icd.userActiveModeTriggerInstruction.size());
+    }
+
+    if (info.icd.userActiveModeTriggerHint.HasAny())
+    {
+        ChipLogProgress(AppServer, "OnReadCommissioningInfo - LIT UserActiveModeTriggerHint=0x%08x",
+                        info.icd.userActiveModeTriggerHint.Raw());
+        ChipLogProgress(AppServer, "OnReadCommissioningInfo - LIT UserActiveModeTriggerInstruction=%s",
+                        userActiveModeTriggerInstruction.c_str());
+    }
+    ChipLogProgress(AppServer, "OnReadCommissioningInfo ICD - IdleModeDuration=%u activeModeDuration=%u activeModeThreshold=%u",
+                    info.icd.idleModeDuration, info.icd.activeModeDuration, info.icd.activeModeThreshold);
 }
 
 void PairingCommand::OnICDRegistrationComplete(NodeId nodeId, uint32_t icdCounter)
@@ -404,13 +441,40 @@ void PairingCommand::OnICDRegistrationComplete(NodeId nodeId, uint32_t icdCounte
     chip::Encoding::BytesToHex(mICDSymmetricKey.Value().data(), mICDSymmetricKey.Value().size(), icdSymmetricKeyHex,
                                sizeof(icdSymmetricKeyHex), chip::Encoding::HexFlags::kNullTerminate);
 
-    // TODO: Persist symmetric key.
+    app::ICDClientInfo clientInfo;
+    clientInfo.peer_node         = ScopedNodeId(nodeId, CurrentCommissioner().GetFabricIndex());
+    clientInfo.monitored_subject = mICDMonitoredSubject.Value();
+    clientInfo.start_icd_counter = icdCounter;
 
+    CHIP_ERROR err = CHIPCommand::sICDClientStorage.SetKey(clientInfo, mICDSymmetricKey.Value());
+    if (err == CHIP_NO_ERROR)
+    {
+        err = CHIPCommand::sICDClientStorage.StoreEntry(clientInfo);
+    }
+
+    if (err != CHIP_NO_ERROR)
+    {
+        CHIPCommand::sICDClientStorage.RemoveKey(clientInfo);
+        ChipLogError(chipTool, "Failed to persist symmetric key for " ChipLogFormatX64 ": %s", ChipLogValueX64(nodeId),
+                     err.AsString());
+        SetCommandExitStatus(err);
+        return;
+    }
+
+    mDeviceIsICD = true;
+
+    ChipLogProgress(chipTool, "Saved ICD Symmetric key for " ChipLogFormatX64, ChipLogValueX64(nodeId));
     ChipLogProgress(chipTool,
                     "ICD Registration Complete for device " ChipLogFormatX64 " / Check-In NodeID: " ChipLogFormatX64
-                    " / Monitored Subject: " ChipLogFormatX64 " / Symmetric Key: %s",
+                    " / Monitored Subject: " ChipLogFormatX64 " / Symmetric Key: %s / ICDCounter %u",
                     ChipLogValueX64(nodeId), ChipLogValueX64(mICDCheckInNodeId.Value()),
-                    ChipLogValueX64(mICDMonitoredSubject.Value()), icdSymmetricKeyHex);
+                    ChipLogValueX64(mICDMonitoredSubject.Value()), icdSymmetricKeyHex, icdCounter);
+}
+
+void PairingCommand::OnICDStayActiveComplete(NodeId deviceId, uint32_t promisedActiveDuration)
+{
+    ChipLogProgress(chipTool, "ICD Stay Active Complete for device " ChipLogFormatX64 " / promisedActiveDuration: %u",
+                    ChipLogValueX64(deviceId), promisedActiveDuration);
 }
 
 void PairingCommand::OnDiscoveredDevice(const chip::Dnssd::DiscoveredNodeData & nodeData)
