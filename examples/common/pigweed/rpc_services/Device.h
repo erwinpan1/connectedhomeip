@@ -481,11 +481,23 @@ public:
         return pw::OkStatus();
     }
 
+    using BindingCommandHandler = void (*)(uint16_t endpoint, uint32_t clusterId, uint32_t commandId, uint32_t value); 
+
+    void RegisterBindingCommandHandler(BindingCommandHandler handler) { mBindingCommandHandler = handler; }
+
+    virtual pw::Status EmitBindingCommandRequest(const chip_rpc_BindingMetadata & request, pw_protobuf_Empty & response)
+    {
+printf("\033[41m %s, %d, endpoint=%u, cluster_id=%u, command_id=%u, value=%u \033[0m\n", __func__, __LINE__, request.endpoint, request.cluster_id, request.command_id, request.value);
+        mBindingCommandHandler(request.endpoint, request.cluster_id, request.command_id, request.value);
+        return pw::OkStatus();
+    }
+
 private:
 #if CHIP_DEVICE_CONFIG_ENABLE_OTA_REQUESTOR
     static constexpr size_t kMaxMetadataForProviderLength = 512; // length defined in chip spec 11.20.6.7
     uint8_t metadataForProviderBuffer[kMaxMetadataForProviderLength];
 #endif // CHIP_DEVICE_CONFIG_ENABLE_OTA_REQUESTOR
+    BindingCommandHandler mBindingCommandHandler;
     Internal::CommissionableDataProviderRpcWrapper mCommissionableDataProvider;
 };
 

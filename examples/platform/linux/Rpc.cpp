@@ -21,6 +21,7 @@
 #include "pw_rpc_system_server/socket.h"
 
 #include <thread>
+#include <platform/PlatformManager.h>
 
 #if defined(PW_RPC_ATTRIBUTE_SERVICE) && PW_RPC_ATTRIBUTE_SERVICE
 #include "pigweed/rpc_services/Attributes.h"
@@ -64,8 +65,41 @@ size_t pw_trace_GetTraceTimeTicksPerSecond()
 
 #endif // defined(PW_RPC_TRACING_SERVICE) && PW_RPC_TRACING_SERVICE
 
+#include "Rpc.h"
+
 namespace chip {
 namespace rpc {
+
+#if defined(PW_RPC_DEVICE_SERVICE) && PW_RPC_DEVICE_SERVICE
+static intptr_t gBindingCommandCallbackContext;
+static chip::rpc::AppBindingCommandHandler gBindingCommandCallback;
+
+void RpcRegisterAppBindingCommandHander(chip::rpc::AppBindingCommandHandler buttonCallback, intptr_t ctx)
+{
+    gBindingCommandCallback = buttonCallback;
+    gBindingCommandCallbackContext = ctx;
+}
+
+using namespace chip::rpc;
+void RpcAsyncBindingCommandHandler(intptr_t arg) 
+{
+    struct BindingCommandRequest * data = reinterpret_cast<struct BindingCommandRequest *>(arg);
+printf("\033[41m %s , %d, endpoint=%d, clusterId=%d, commandId=%d \033[0m \n", __func__, __LINE__, data->endpoint, data->clusterId, data->commandId);
+    if (gBindingCommandCallback) {
+        gBindingCommandCallback(gBindingCommandCallbackContext, data);
+    }
+    delete data;
+}
+
+void RpcBindingCommandHandler(uint16_t endpoint, uint32_t clusterId, uint32_t commandId, uint32_t value) 
+{
+    struct BindingCommandRequest * data = new BindingCommandRequest{endpoint, clusterId, commandId};
+printf("\033[41m %s , %d \033[0m \n", __func__, __LINE__);
+    DeviceLayer::PlatformMgr().ScheduleWork(RpcAsyncBindingCommandHandler, reinterpret_cast<intptr_t>(data));
+
+}	
+#endif // defined(PW_RPC_DEVICE_SERVICE) && PW_RPC_DEVICE_SERVICE
+
 namespace {
 
 #if defined(PW_RPC_ATTRIBUTE_SERVICE) && PW_RPC_ATTRIBUTE_SERVICE
@@ -108,6 +142,7 @@ void RegisterServices(pw::rpc::Server & server)
 
 #if defined(PW_RPC_DEVICE_SERVICE) && PW_RPC_DEVICE_SERVICE
     server.RegisterService(device_service);
+    device_service.RegisterBindingCommandHandler(RpcBindingCommandHandler);
 #endif // defined(PW_RPC_DEVICE_SERVICE) && PW_RPC_DEVICE_SERVICE
 
 #if defined(PW_RPC_LIGHTING_SERVICE) && PW_RPC_LIGHTING_SERVICE
