@@ -29,13 +29,6 @@
 class ChefBindingHandler
 {
 public:
-    enum class SwitchAction : uint8_t
-    {
-        Toggle, /// Switch state on lighting-app device
-        On,     /// Turn on light on lighting-app device
-        Off     /// Turn off light on lighting-app device
-    };
-
     struct BindingData
     {
         chip::EndpointId EndpointId;

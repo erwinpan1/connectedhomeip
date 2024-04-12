@@ -202,7 +202,7 @@ void ChefBindingHandler::BoundDeviceChangedHandler(const EmberBindingTableEntry 
 
 printf("\033[41m %s, %d \033[0m  \n", __func__, __LINE__);
 
-    if (bindingEntry.type == EMBER_MULTICAST_BINDING && data->IsGroup)
+    if (bindingEntry.type == MATTER_MULTICAST_BINDING && data->IsGroup)
     {
         switch (data->ClusterId)
         {
@@ -217,7 +217,7 @@ printf("\033[41m %s, %d \033[0m  \n", __func__, __LINE__);
             break;
         }
     }
-    else if (bindingEntry.type == EMBER_UNICAST_BINDING && !data->IsGroup)
+    else if (bindingEntry.type == MATTER_UNICAST_BINDING && !data->IsGroup)
     {
         switch (data->ClusterId)
         {
@@ -249,7 +249,6 @@ void ChefBindingHandler::InitInternal(intptr_t aArg)
         ChipLogProgress(NotSpecified, "ChefBindingHandler Inited");
         return;
     }
-    // Erwin: TBD aArg is endpoint
     ChipLogProgress(NotSpecified, "Initialize binding Handler, endpoint=%d", static_cast<uint8_t>(aArg));
 
     auto & server = Server::GetInstance();
@@ -273,7 +272,7 @@ bool ChefBindingHandler::IsGroupBound()
 
     for (auto & entry : bindingTable)
     {
-        if (EMBER_MULTICAST_BINDING == entry.type)
+        if (MATTER_MULTICAST_BINDING == entry.type)
         {
             return true;
         }
@@ -291,7 +290,7 @@ void ChefBindingHandler::PrintBindingTable()
     {
         switch (entry.type)
         {
-        case EMBER_UNICAST_BINDING:
+        case MATTER_UNICAST_BINDING:
             ChipLogProgress(NotSpecified, "[%d] UNICAST:", i++);
             ChipLogProgress(NotSpecified, "\t\t+ Fabric: %d\n \
             \t+ LocalEndpoint %d \n \
@@ -301,7 +300,7 @@ void ChefBindingHandler::PrintBindingTable()
                     (int) entry.fabricIndex, (int) entry.local, (int) entry.clusterId.Value(), (int) entry.remote,
                     (int) entry.nodeId);
             break;
-        case EMBER_MULTICAST_BINDING:
+        case MATTER_MULTICAST_BINDING:
             ChipLogProgress(NotSpecified, "[%d] GROUP:", i++);
             ChipLogProgress(NotSpecified, "\t\t+ Fabric: %d\n \
             \t+ LocalEndpoint %d \n \
@@ -309,7 +308,7 @@ void ChefBindingHandler::PrintBindingTable()
             \t+ GroupId %d",
                     (int) entry.fabricIndex, (int) entry.local, (int) entry.remote, (int) entry.groupId);
             break;
-        case EMBER_UNUSED_BINDING:
+        case MATTER_UNUSED_BINDING:
             ChipLogProgress(NotSpecified, "[%d] UNUSED", i++);
             break;
         default:
