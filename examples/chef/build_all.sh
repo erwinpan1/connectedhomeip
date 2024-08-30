@@ -1,6 +1,13 @@
 # !/bin/bash
 #./build_all.sh ~/chef_bins
 
+if [ "" == "$1" ]
+then
+   echo "$0 <target bins folder>"
+   echo "e.g: $0 ~/chef_bins"
+   exit 1
+fi
+
 dest_dir=${1}
 
 if [ ! -d $1 ]
@@ -44,8 +51,6 @@ rootnode_windowcovering_RLCxaGi9Yx
 
 for i in ${device_types[@]}
 do
-	./chef.py -br -d $i -t linux
-	cp linux/out/$i $1
-
+    ( ./chef.py -zbr -d $i -t linux && /bin/cp -avf linux/out/$i $1 && strip linux/out/$i ) || exit 1
 done
 
