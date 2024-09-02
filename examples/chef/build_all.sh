@@ -19,7 +19,7 @@ fi
 
 device_types=(
 rootnode_airqualitysensor_e63187f6c9
-rootnode_basicvideoplayer_0ff86e943b
+# rootnode_basicvideoplayer_0ff86e943b
 rootnode_colortemperaturelight_hbUnzYVeyn
 rootnode_contactsensor_lFAGG1bfRO
 rootnode_dimmablelight_bCwGYSDpoe
