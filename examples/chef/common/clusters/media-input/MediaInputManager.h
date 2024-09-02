@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include <app/AttributeValueEncoder.h>
 #include <app/clusters/media-input-server/media-input-server.h>
 
 #include <string>

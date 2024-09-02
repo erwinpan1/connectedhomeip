@@ -123,7 +123,7 @@ CHIP_ERROR MediaPlaybackManager::HandleSetCurrentState(PlaybackStateEnum current
         ChipLogError(Zcl, "Unable to set CurrentState attribute, 0x%x", to_underlying(status));
     }
 
-    return CHIP_ERROR_IM_GLOBAL_STATUS_VALUE(status);
+    return chip::ChipError(::chip::ChipError::SdkPart::kIMGlobalStatus, ::chip::to_underlying(status));
 }
 
 CHIP_ERROR MediaPlaybackManager::HandleSetPlaybackSpeed(float playbackSpeed)
@@ -135,7 +135,7 @@ CHIP_ERROR MediaPlaybackManager::HandleSetPlaybackSpeed(float playbackSpeed)
         ChipLogError(Zcl, "Unable to set PlaybackSpeed attribute, 0x%x", to_underlying(status));
     }
 
-    return CHIP_ERROR_IM_GLOBAL_STATUS_VALUE(status);
+    return chip::ChipError(::chip::ChipError::SdkPart::kIMGlobalStatus, ::chip::to_underlying(status));
 }
 
 void MediaPlaybackManager::HandlePlay(CommandResponseHelper<Commands::PlaybackResponse::Type> & helper)
