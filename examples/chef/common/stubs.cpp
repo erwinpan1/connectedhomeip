@@ -262,12 +262,12 @@ void emberAfWakeOnLanClusterInitCallback(EndpointId endpoint)
 
 void ApplicationInit()
 {
-    ChipLogProgress(NotSpecified, "Chef Application Init !!!")
+    ChipLogProgress(NotSpecified, "Chef Application Init !!!");
 }
 
 void ApplicationShutdown()
 {
-    ChipLogProgress(NotSpecified, "Chef Application Down !!!")
+    ChipLogProgress(NotSpecified, "Chef Application Down !!!");
 }
 
 // No-op function, used to force linking this file,
