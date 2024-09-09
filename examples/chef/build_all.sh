@@ -54,6 +54,6 @@ rootnode_windowcovering_RLCxaGi9Yx
 
 for i in ${device_types[@]}
 do
-    ( ./chef.py -zbr -d $i -t linux && /bin/cp -avf linux/out/$i $1 && strip linux/out/$i ) || exit 1
+    ( ./chef.py -zbr -d $i -t linux && strip linux/out/$i && /bin/cp -avf linux/out/$i $1 ) || exit 1
 done
 
