@@ -2,8 +2,9 @@ import os
 import sys
 import xml.etree.ElementTree as ET
 
-id2XmlMap = []
-
+name2XmlMap = {}
+id2XmlMap = {} 
+parentClusterMap = {}
 
 def parse_xml_files_in_folder(folder_path):
     print(f"DEBUG: Starting to parse XML files in folder: {folder_path}")  
@@ -11,6 +12,7 @@ def parse_xml_files_in_folder(folder_path):
     for filename in os.listdir(folder_path):
         if filename.endswith('.xml'):
             full_path = os.path.join(folder_path, filename)
+            print("==========================================================")
             print(f"DEBUG: Processing file: {filename}") 
 
             try:
@@ -18,28 +20,40 @@ def parse_xml_files_in_folder(folder_path):
                 root = tree.getroot()
                 print(f"DEBUG: Successfully parsed {filename}")
 
-                # Now you can work with the 'root' element to extract data
-                # For example, to print all child elements:
-                for child in root:
-                    print(child.tag, child.attrib)
+                # If it is a derived cluster
+                classification = root.find('classification')
+                baseCluster = classification.get('baseCluster')
 
-                    if child.tag != 'clusterIds':
-                        continue
+                # Find the clusterIds
+                clusterIds = root.find('clusterIds')
+                if clusterIds:
+                    print(clusterIds)
 
-                    clusterIdSet = child.findall('clusterId')
+                    clusterIdSet = clusterIds.findall('clusterId')
                     print(clusterIdSet)
              
                     for clusterId in clusterIdSet:
-                        clusterIdMap = {'id':clusterId.get('id'), 'name':clusterId.get('name'), 'file':full_path}
+                        if baseCluster is not None:
+                            parentClusterMap[ int(clusterId.get('id'), 16) ] = {'name':clusterId.get('name'), 'file':full_path, 'baseCluster': baseCluster}
+                            print(f'Found cluster {clusterId} with parent cluster {baseCluster}')
+                        elif clusterId.get('id') is not None:
+                            id2XmlMap[ int(clusterId.get('id'), 16) ] = {'name':clusterId.get('name'), 'file':full_path}
+                            print(f'Found cluster with id {clusterId}')
+                        else:
+                            print(f'Found cluster without id {clusterId}')
 
-                        id2XmlMap.append(clusterIdMap)
-
-                    print(f"DEBUG: Successfully parsed {filename}")
+                        name2XmlMap[str(clusterId.get('name'))] = {'file':full_path}
 
             except ET.ParseError as e:
                 print(f"ERROR: Error parsing {filename}: {e}")
 
-            print(clusterIdMap)
+    print(name2XmlMap)
+
+    for key, value in parentClusterMap.items():
+        print(f'Processing derived class: name: {value['name']}, parent: {value['baseCluster']}')
+        id2XmlMap[key] = {'name': value['name'], 'file': name2XmlMap[value['baseCluster']]['file']}
+
+    print(id2XmlMap)
 
 
 if __name__ == "__main__":
