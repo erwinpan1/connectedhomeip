@@ -50,6 +50,9 @@ def find_ram_attributes_and_replace(data, replace=False):
             cluster_name = cluster.get('name')
             cluster_code = cluster.get('code')
 
+            if cluster_code > 0x7FFF: # Not standard cluster ID
+                continue;
+
             for attribute in cluster.get('attributes', []):  # Iterate through the attributes
                 attribute_code = attribute.get('code')  # Get the attribute's code
                 # Filter global element
@@ -59,6 +62,7 @@ def find_ram_attributes_and_replace(data, replace=False):
 
                     attribute_name = attribute.get('name')  # Get the attribute's name
 
+                    print(f"cluster_code = {cluster_code}, attribute_code={attribute_code}, attribute_name = {attribute_name}")
                     spec_xml = id2XmlMap[cluster_code]['file']
                     if not is_attribute_non_volatile(spec_xml, attribute_code):
                         print(f"\033[41m Ignore cluster: {cluster_name}, name:{attribute_name} \033[0m")

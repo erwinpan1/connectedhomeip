@@ -27,13 +27,15 @@ def is_attribute_non_volatile(source, attribute_id):
         with open(source, 'r') as file:
             content = file.read()
 
+    print(f"source = {source}")
+    print(f"attribute_id = {attribute_id}")
     soup = BeautifulSoup(content, 'lxml-xml')
 
     # Debug: Print the parsed XML structure (for a quick visual check)
     # print("Parsed XML:", soup.prettify())
 
     # Find the attribute with the given ID (convert hex ID from XML to integer for comparison)
-    attribute = soup.find('attribute', {'id': lambda x: int(x, 16) == attribute_id})
+    attribute = soup.find('attribute', {'id': lambda x: x is not None and int(x, 16) == attribute_id})
 
     # Debug: Check if the attribute was found
     print("Attribute found:", attribute is not None)
