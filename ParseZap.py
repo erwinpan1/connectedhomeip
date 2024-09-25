@@ -2,6 +2,7 @@ import argparse
 import requests
 import json
 import os
+import glob
 
 def download_zap_file(url, file_name):
     print(f"[DEBUG] Attempting to download file from URL: {url}")
@@ -73,7 +74,7 @@ def find_ram_attributes_and_replace(data, replace=False):
 
     return modified
 
-def process_zap_file(input_file):
+def process_zap_file(input_file, in_place):
     # Check if it's a URL or a local file
     if input_file.startswith("http://") or input_file.startswith("https://"):
         print(f"[DEBUG] Detected URL input: {input_file}")
@@ -97,9 +98,16 @@ def process_zap_file(input_file):
         if modified:
             # If it's a local file, modify the storageOption and save it
             if os.path.isfile(input_file):
-                # Save the modified JSON back to the file (or to a new file)
-                modified_file = input_file.replace(".zap", "_modified.zap")
-                print(f"[DEBUG] Saving modified file as: {modified_file}")
+
+                if in_place:
+                    # Save the modified JSON back to the original file
+                    modified_file = input_file
+                    print(f"[DEBUG] Saving in place: {modified_file}")
+                else:
+                    # Save the modified JSON back to the file (or to a new file)
+                    modified_file = input_file.replace(".zap", "_modified.zap")
+                    print(f"[DEBUG] Saving modified file as: {modified_file}")
+
                 with open(modified_file, 'w') as file:
                     json.dump(parsed_data, file, indent=2)
                 print(f"[DEBUG] File saved successfully.")
@@ -111,15 +119,38 @@ def process_zap_file(input_file):
     else:
         print(f"[DEBUG] Failed to parse the .zap file.")
 
+def process_directory(directory, in_place):
+    # Find all *.zap files in the directory
+    print(f"[DEBUG] Processing all *.zap files in directory: {directory}")
+    zap_files = glob.glob(os.path.join(directory, "*.zap"))
+    if not zap_files:
+        print(f"[DEBUG] No .zap files found in directory: {directory}")
+        return
+    
+    print(f"[DEBUG] Found {len(zap_files)} .zap files.")
+    for zap_file in zap_files:
+        print(f"[DEBUG] Processing file: {zap_file}")
+        process_zap_file(zap_file, in_place)
+
+
 if __name__ == "__main__":
     # Command-line argument parsing
-    parser = argparse.ArgumentParser(description="Parse a .zap file and find/modify attributes with storageOption 'RAM'.")
-    parser.add_argument("zap_file", help="The URL or local path to the .zap file.")
-
+    parser = argparse.ArgumentParser(description="Parse a .zap file or a directory of .zap files and find/modify attributes with storageOption 'RAM'.")
+    
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("-f", "--file", help="Process a single zap file (local or remote URL).")
+    group.add_argument("-d", "--directory", help="Process all *.zap files in a specific directory.")
+    parser.add_argument("-i", "--in-place", action="store_true", help="Modify the files in place instead of creating a new file.", default=False)
+  
     args = parser.parse_args()
 
-    # Process the provided zap file (URL or local path)
-    print(f"[DEBUG] Starting process for input file: {args.zap_file}")
-    process_zap_file(args.zap_file)
+    # Process the provided zap file or directory
+    if args.file:
+        print(f"[DEBUG] Starting process for file: {args.file}")
+        process_zap_file(args.file, args.in_place)
+    elif args.directory:
+        print(f"[DEBUG] Starting process for directory: {args.directory}")
+        process_directory(args.directory, args.in_place)
+
     print(f"[DEBUG] Process complete.")
 
