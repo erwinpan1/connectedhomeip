@@ -76,9 +76,9 @@ def find_ram_attributes_and_replace(data, replace=False):
                         "attribute_name": attribute_name,
                         "attribute": attribute
                     })
-                    # Replace RAM to NVRAM
+                    # Replace RAM to NVM
                     if replace:
-                        attribute['storageOption'] = 'NVRAM'
+                        attribute['storageOption'] = 'NVM'
                         modified = True
     
     print(f"[DEBUG] Found {len(ram_attributes)} attributes with storageOption 'RAM'.")
@@ -106,7 +106,7 @@ def process_zap_file(input_file, in_place):
     # Parse the file and find RAM attributes
     parsed_data = parse_zap_file(input_file)
     if parsed_data:
-        print(f"[DEBUG] Modifying storageOption from 'RAM' to 'NVRAM' in local file: {input_file}")
+        print(f"[DEBUG] Modifying storageOption from 'RAM' to 'NVM' in local file: {input_file}")
         modified = find_ram_attributes_and_replace(parsed_data, True)
 
         if modified:
