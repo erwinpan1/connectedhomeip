@@ -30,31 +30,27 @@ def parse_zap_file(file_name):
         print(f"[DEBUG] Error reading file: {e}")
         return None
 
-def find_ram_attributes_with_codes(data):
+def find_ram_attributes_and_replace(data, replace=False):
     print(f"[DEBUG] Searching for attributes with storageOption 'RAM'.")
     ram_attributes = []
+    modified = False
     
     # Traverse the JSON to find parent nodes and their attributes
     for endpointType in data.get('endpointTypes', []):  # Get 'endpointType' is the parent node section
-
         endpoint_id = endpointType.get('id')
-
         # Filter rootnode endpoint
         if endpoint_id == 0:
             continue
 
         for cluster in endpointType.get('clusters', []):  # Get 'clusters' is the parent node section
-
             cluster_name = cluster.get('name')
             cluster_code = cluster.get('code')
 
             for attribute in cluster.get('attributes', []):  # Iterate through the attributes
-
                 attribute_code = attribute.get('code')  # Get the attribute's code
                 # Filter global element
                 if attribute_code >= 0xF000: # Golbal attribute 0xF000 - 0xFFFE
                     continue
-
                 if attribute.get('storageOption') == 'RAM':  # Check if the storageOption is 'RAM'
                     attribute_name = attribute.get('name')  # Get the attribute's name
                     print(f"[DEBUG] Found RAM attribute: Parent Code: {cluster_code}, {cluster_name}, Attribute Code: {attribute_code}, Attribute Name: {attribute_name}")
@@ -65,24 +61,16 @@ def find_ram_attributes_with_codes(data):
                         "attribute_name": attribute_name,
                         "attribute": attribute
                     })
+                    # Replace RAM to NVRAM
+                    if replace:
+                        attribute['storageOption'] = 'NVRAM'
+                        modified = True
     
     print(f"[DEBUG] Found {len(ram_attributes)} attributes with storageOption 'RAM'.")
-    return ram_attributes
+    for entry in ram_attributes:
+        print(f"Parent Code: {entry['cluster_code']}, Attribute Code: {entry['attribute_code']}")
+        print(json.dumps(entry['attribute'], indent=4))
 
-def modify_storage_option(data):
-    print(f"[DEBUG] Modifying attributes with storageOption 'RAM' to 'NVRAM'.")
-    modified = False
-    # Traverse the JSON and modify attributes with "storageOption" as "RAM" to "NVRAM"
-    for parent in data.get('nodes', []):
-        for attribute in parent.get('attributes', []):
-            if attribute.get('storageOption') == 'RAM':
-                print(f"[DEBUG] Modifying attribute with code {attribute.get('code')} from 'RAM' to 'NVRAM'")
-                attribute['storageOption'] = 'NVRAM'
-                modified = True
-    if modified:
-        print(f"[DEBUG] Attributes modified successfully.")
-    else:
-        print(f"[DEBUG] No modifications were made (no attributes with 'RAM' found).")
     return modified
 
 def process_zap_file(input_file):
@@ -103,30 +91,23 @@ def process_zap_file(input_file):
     # Parse the file and find RAM attributes
     parsed_data = parse_zap_file(input_file)
     if parsed_data:
-        # If it's a local file, modify the storageOption and save it
-        #if os.path.isfile(input_file):
-        if False:
-            print(f"[DEBUG] Modifying storageOption from 'RAM' to 'NVRAM' in local file: {input_file}")
-            modified = modify_storage_option(parsed_data)
-            if modified:
+        print(f"[DEBUG] Modifying storageOption from 'RAM' to 'NVRAM' in local file: {input_file}")
+        modified = find_ram_attributes_and_replace(parsed_data, True)
+
+        if modified:
+            # If it's a local file, modify the storageOption and save it
+            if os.path.isfile(input_file):
                 # Save the modified JSON back to the file (or to a new file)
                 modified_file = input_file.replace(".zap", "_modified.zap")
                 print(f"[DEBUG] Saving modified file as: {modified_file}")
                 with open(modified_file, 'w') as file:
-                    json.dump(parsed_data, file, indent=4)
+                    json.dump(parsed_data, file, indent=2)
                 print(f"[DEBUG] File saved successfully.")
             else:
-                print(f"[DEBUG] No modifications were needed.")
+                # Handle case where it's a URL (output RAM attributes, don't modify)
+                print(f"[DEBUG] Not local file, unable to modify")
         else:
-            # Handle case where it's a URL (output RAM attributes, don't modify)
-            ram_attributes = find_ram_attributes_with_codes(parsed_data)
-            if ram_attributes:
-                print("[DEBUG] Displaying RAM attributes found in the file:")
-                for entry in ram_attributes:
-                    print(f"Parent Code: {entry['cluster_code']}, Attribute Code: {entry['attribute_code']}")
-                    print(json.dumps(entry['attribute'], indent=4))
-            else:
-                print(f"[DEBUG] No attributes with storageOption 'RAM' found.")
+            print(f"[DEBUG] No modifications were needed.")
     else:
         print(f"[DEBUG] Failed to parse the .zap file.")
 
