@@ -35,12 +35,17 @@ def is_attribute_non_volatile(source, attribute_id):
     # print("Parsed XML:", soup.prettify())
 
     # Find the attribute with the given ID (convert hex ID from XML to integer for comparison)
-    attribute = soup.find('attribute', {'id': lambda x: x is not None and int(x, 16) == attribute_id})
+    for attribute in soup.find_all('attribute', {'id': lambda x: x is not None and int(x, 16) == attribute_id}):
 
-    # Debug: Check if the attribute was found
-    print("Attribute found:", attribute is not None)
+        mandatoryConform = attribute.find('mandatoryConform')
 
-    if attribute:
+        # Ignore conformance which is Zigbee
+        if mandatoryConform:
+            condition = mandatoryConform.find('condition')
+            if condition and condition.get('name') == 'Zigbee':
+                print(f"Ignore conformance which is Zigbee")
+                continue
+
         quality_node = attribute.find('quality')
 
         # Debug: Check if the quality node was found
