@@ -4,6 +4,9 @@ import json
 import os
 import glob
 
+from ParseXmlFolder import *
+from ClusterReader import *
+
 def download_zap_file(url, file_name):
     print(f"[DEBUG] Attempting to download file from URL: {url}")
     try:
@@ -40,7 +43,7 @@ def find_ram_attributes_and_replace(data, replace=False):
     for endpointType in data.get('endpointTypes', []):  # Get 'endpointType' is the parent node section
         endpoint_id = endpointType.get('id')
         # Filter rootnode endpoint
-        if endpoint_id == 0:
+        if endpoint_id == 1:
             continue
 
         for cluster in endpointType.get('clusters', []):  # Get 'clusters' is the parent node section
@@ -53,8 +56,15 @@ def find_ram_attributes_and_replace(data, replace=False):
                 if attribute_code >= 0xF000: # Golbal attribute 0xF000 - 0xFFFE
                     continue
                 if attribute.get('storageOption') == 'RAM':  # Check if the storageOption is 'RAM'
+
                     attribute_name = attribute.get('name')  # Get the attribute's name
-                    print(f"[DEBUG] Found RAM attribute: Parent Code: {cluster_code}, {cluster_name}, Attribute Code: {attribute_code}, Attribute Name: {attribute_name}")
+
+                    spec_xml = id2XmlMap[cluster_code]['file']
+                    if not is_attribute_non_volatile(spec_xml, attribute_code):
+                        print(f"\033[41m Ignore cluster: {cluster_name}, name:{attribute_name} \033[0m")
+                        continue
+
+                    print(f"\033[44m [DEBUG] Found RAM attribute: Parent Code: {cluster_code}, {cluster_name}, Attribute Code: {attribute_code}, Attribute Name: {attribute_name} \033[0m")
                     ram_attributes.append({
                         "cluster_code": cluster_code,
                         "cluster_name" : cluster_name,
@@ -140,9 +150,14 @@ if __name__ == "__main__":
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-f", "--file", help="Process a single zap file (local or remote URL).")
     group.add_argument("-d", "--directory", help="Process all *.zap files in a specific directory.")
+
+    parser.add_argument("-s", "--spec", help="The folder path where spec xml files to be loaded", required=True)
     parser.add_argument("-i", "--in-place", action="store_true", help="Modify the files in place instead of creating a new file.", default=False)
   
     args = parser.parse_args()
+
+    parse_xml_files_in_folder(args.spec)
+    print(f"id2XmlMap: {id2XmlMap}")
 
     # Process the provided zap file or directory
     if args.file:

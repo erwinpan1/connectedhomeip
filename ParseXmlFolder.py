@@ -53,7 +53,6 @@ def parse_xml_files_in_folder(folder_path):
         print(f'Processing derived class: name: {value["name"]}, parent: {value["baseCluster"]}')
         id2XmlMap[key] = {'name': value['name'], 'file': name2XmlMap[value['baseCluster']]['file']}
 
-    print(id2XmlMap)
 
 
 if __name__ == "__main__":
@@ -64,3 +63,4 @@ if __name__ == "__main__":
 
     folder_path = sys.argv[1]
     parse_xml_files_in_folder(folder_path)
+    print(id2XmlMap)
