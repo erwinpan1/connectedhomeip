@@ -50,7 +50,7 @@ def parse_xml_files_in_folder(folder_path):
     print(name2XmlMap)
 
     for key, value in parentClusterMap.items():
-        print(f'Processing derived class: name: {value['name']}, parent: {value['baseCluster']}')
+        print(f'Processing derived class: name: {value["name"]}, parent: {value["baseCluster"]}')
         id2XmlMap[key] = {'name': value['name'], 'file': name2XmlMap[value['baseCluster']]['file']}
 
     print(id2XmlMap)
