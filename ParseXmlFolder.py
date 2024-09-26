@@ -22,7 +22,11 @@ def parse_xml_files_in_folder(folder_path):
 
                 # If it is a derived cluster
                 classification = root.find('classification')
-                baseCluster = classification.get('baseCluster')
+                if classification is not None:
+                    baseCluster = classification.get('baseCluster')
+                else:
+                    baseCluster = None
+
 
                 # Find the clusterIds
                 clusterIds = root.find('clusterIds')
