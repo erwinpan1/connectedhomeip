@@ -1765,7 +1765,7 @@ endpoint 1 {
     ram      attribute globalSceneControl default = 1;
     ram      attribute onTime default = 0;
     ram      attribute offWaitTime default = 0;
-    persist  attribute startUpOnOff default = 0;
+    persist  attribute startUpOnOff;
     callback attribute generatedCommandList;
     callback attribute acceptedCommandList;
     callback attribute attributeList;
@@ -1784,7 +1784,7 @@ endpoint 1 {
     ram      attribute maxLevel default = 0xFE;
     ram      attribute options default = 0x01;
     ram      attribute onLevel default = 0xFE;
-    persist  attribute startUpCurrentLevel default = 0x01;
+    persist  attribute startUpCurrentLevel;
     callback attribute generatedCommandList;
     callback attribute acceptedCommandList;
     callback attribute attributeList;
