@@ -17,7 +17,6 @@
  */
 
 #include <app-common/zap-generated/attributes/Accessors.h>
-#include <app/AttributeValueEncoder.h>
 #include <app/util/config.h>
 #include <map>
 
